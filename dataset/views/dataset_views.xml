@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_source_form" model="ir.ui.view">
+        <field name="name">dataset.source.form</field>
+        <field name="model">dataset.source</field>
+        <field name="arch" type="xml">
+            <form string="Source">
+                <sheet>
+                    <group>
+                        <field name="code"/>
+                        <field name="name"/>
+                        <field name="url"/>
+                    </group>
+                    <group>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_source_tree" model="ir.ui.view">
+        <field name="name">dataset.source.tree</field>
+        <field name="model">dataset.source</field>
+        <field name="arch" type="xml">
+            <tree string="Sources">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="url"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_source" model="ir.actions.act_window">
+        <field name="name">Sources</field>
+        <field name="res_model">dataset.source</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_storage_form" model="ir.ui.view">
+        <field name="name">dataset.storage.form</field>
+        <field name="model">dataset.storage</field>
+        <field name="arch" type="xml">
+            <form string="Storage">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="provider"/>
+                        <field name="is_default"/>
+                    </group>
+                    <group>
+                        <field name="config"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_storage_tree" model="ir.ui.view">
+        <field name="name">dataset.storage.tree</field>
+        <field name="model">dataset.storage</field>
+        <field name="arch" type="xml">
+            <tree string="Storages">
+                <field name="name"/>
+                <field name="provider"/>
+                <field name="is_default"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_storage" model="ir.actions.act_window">
+        <field name="name">Storages</field>
+        <field name="res_model">dataset.storage</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_package_form" model="ir.ui.view">
+        <field name="name">dataset.package.form</field>
+        <field name="model">dataset.package</field>
+        <field name="arch" type="xml">
+            <form string="Package">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                        <field name="parent_id"/>
+                    </group>
+                    <group>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_package_tree" model="ir.ui.view">
+        <field name="name">dataset.package.tree</field>
+        <field name="model">dataset.package</field>
+        <field name="arch" type="xml">
+            <tree string="Packages">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="parent_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_package" model="ir.actions.act_window">
+        <field name="name">Packages</field>
+        <field name="res_model">dataset.package</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_data_chunk_form" model="ir.ui.view">
+        <field name="name">dataset.data_chunk.form</field>
+        <field name="model">dataset.data_chunk</field>
+        <field name="arch" type="xml">
+            <form string="Data Chunk">
+                <sheet>
+                    <group>
+                        <field name="key"/>
+                        <field name="dataset_id"/>
+                    </group>
+                    <group>
+                        <field name="size"/>
+                        <field name="metadata"/>
+                    </group>
+                    <group>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_data_chunk_tree" model="ir.ui.view">
+        <field name="name">dataset.data_chunk.tree</field>
+        <field name="model">dataset.data_chunk</field>
+        <field name="arch" type="xml">
+            <tree string="Data Chunks">
+                <field name="key"/>
+                <field name="dataset_id"/>
+                <field name="size"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_data_chunk" model="ir.actions.act_window">
+        <field name="name">Data Chunks</field>
+        <field name="res_model">dataset.data_chunk</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_dataset_form" model="ir.ui.view">
+        <field name="name">dataset.form</field>
+        <field name="model">dataset</field>
+        <field name="arch" type="xml">
+            <form string="Dataset">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="source_id"/>
+                            <field name="package_id"/>
+                            <field name="chunk_data_type"/>
+                        </group>
+                        <group>
+                            <field name="name"/>
+                            <field name="state"/>
+                            <field name="record_count"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="key_fields"/>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dataset_tree" model="ir.ui.view">
+        <field name="name">dataset.tree</field>
+        <field name="model">dataset</field>
+        <field name="arch" type="xml">
+            <tree string="Datasets">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="source_id"/>
+                <field name="package_id"/>
+                <field name="chunk_data_type"/>
+                <field name="state"/>
+                <field name="record_count"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_dataset" model="ir.actions.act_window">
+        <field name="name">Datasets</field>
+        <field name="res_model">dataset</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

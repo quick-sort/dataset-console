@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dataset_root"
+              name="Dataset"
+              sequence="50"/>
+
+    <menuitem id="menu_source"
+              name="Sources"
+              parent="menu_dataset_root"
+              action="action_source"
+              sequence="10"/>
+
+    <menuitem id="menu_storage"
+              name="Storages"
+              parent="menu_dataset_root"
+              action="action_storage"
+              sequence="15"/>
+
+    <menuitem id="menu_package"
+              name="Packages"
+              parent="menu_dataset_root"
+              action="action_package"
+              sequence="20"/>
+
+    <menuitem id="menu_dataset"
+              name="Datasets"
+              parent="menu_dataset_root"
+              action="action_dataset"
+              sequence="30"/>
+
+    <menuitem id="menu_data_chunk"
+              name="Data Chunks"
+              parent="menu_dataset_root"
+              action="action_data_chunk"
+              sequence="40"/>
+</odoo>
