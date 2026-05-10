@@ -14,15 +14,16 @@ and evaluation data in Odoo.
     'author': 'Quick Sort',
     'website': '',
     'license': 'LGPL-3',
-    'icon': '/dataset/static/description/icon.png',
+    'icon': '/dataset/static/description/stock.svg',
     'depends': ['base'],
     'data': [
+        'security/dataset_manager.xml',
         'security/ir.model.access.csv',
         'views/dataset_views.xml',
         'views/menu.xml',
     ],
     'images': [
-        'static/description/icon.png',
+        'static/description/stock.svg',
     ],
     'installable': True,
     'application': True,

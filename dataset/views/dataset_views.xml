@@ -130,12 +130,20 @@
                         <group>
                             <field name="name"/>
                             <field name="state"/>
-                            <field name="record_count"/>
+                            <field name="total_chunks"/>
                         </group>
                     </group>
                     <group>
                         <field name="key_fields"/>
                         <field name="description"/>
+                    </group>
+                    <group>
+                        <field name="chunk_ids">
+                            <tree string="Chunks">
+                                <field name="key"/>
+                                <field name="size"/>
+                            </tree>
+                        </field>
                     </group>
                 </sheet>
             </form>
@@ -153,7 +161,7 @@
                 <field name="package_id"/>
                 <field name="chunk_data_type"/>
                 <field name="state"/>
-                <field name="record_count"/>
+                <field name="total_chunks"/>
             </tree>
         </field>
     </record>
@@ -161,6 +169,7 @@
     <record id="action_dataset" model="ir.actions.act_window">
         <field name="name">Datasets</field>
         <field name="res_model">dataset</field>
+        <field name="path">datasets</field>
         <field name="view_mode">tree,form</field>
     </record>
 </odoo>
