@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from odoo import models, fields
+from odoo import models, fields, api
 
 
 class Dataset(models.Model):
@@ -12,12 +12,8 @@ class Dataset(models.Model):
     code = fields.Char(string='Code', required=True)
     source_id = fields.Many2one('dataset.source', string='Source', required=True, tracking=True)
     package_id = fields.Many2one('dataset.package', string='Package', index=True)
+    manifest_id = fields.Many2one('dataset.manifest', string='Manifest', ondelete='set null')
     description = fields.Text(string='Description')
-    state = fields.Selection([
-        ('missing', 'Missing'),
-        ('exists', 'Exists'),
-        ('checked', 'Checked'),
-    ], string='State', default='missing')
     chunk_data_type = fields.Selection([
         ('pdf', 'PDF'),
         ('csv', 'CSV'),
@@ -34,6 +30,14 @@ class Dataset(models.Model):
         compute='_compute_total_chunks',
         store=True,
     )
+    fill_rate = fields.Float(
+        string='Fill Rate',
+        compute='_compute_fill_rate',
+        store=True,
+        digits=(5, 4),
+        help="Actual chunk count divided by the manifest's expected chunk count. "
+             "0 if no manifest is set or its expected count is 0.",
+    )
 
     _code_source_unique = models.Constraint(
         'unique(code, source_id)',
@@ -45,8 +49,13 @@ class Dataset(models.Model):
         "Dataset name must be unique per source!",
     )
 
+    @api.depends('chunk_ids')
     def _compute_total_chunks(self):
         for record in self:
-            record.total_chunks = self.env['dataset.data_chunk'].search_count([
-                ('dataset_id', '=', record.id)
-            ])
+            record.total_chunks = len(record.chunk_ids)
+
+    @api.depends('total_chunks', 'manifest_id.total_chunks')
+    def _compute_fill_rate(self):
+        for record in self:
+            expected = record.manifest_id.total_chunks
+            record.fill_rate = (record.total_chunks / expected) if expected else 0.0

@@ -19,22 +19,22 @@
         </field>
     </record>
 
-    <record id="view_storage_tree" model="ir.ui.view">
-        <field name="name">dataset.storage.tree</field>
+    <record id="view_storage_list" model="ir.ui.view">
+        <field name="name">dataset.storage.list</field>
         <field name="model">dataset.storage</field>
         <field name="arch" type="xml">
-            <tree string="Storages">
+            <list string="Storages">
                 <field name="name"/>
                 <field name="backend_type"/>
                 <field name="is_default"/>
-            </tree>
+            </list>
         </field>
     </record>
 
     <record id="action_storage" model="ir.actions.act_window">
         <field name="name">Storages</field>
         <field name="res_model">dataset.storage</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <menuitem id="menu_storage"

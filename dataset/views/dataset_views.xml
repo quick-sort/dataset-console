@@ -1,119 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_source_form" model="ir.ui.view">
-        <field name="name">dataset.source.form</field>
-        <field name="model">dataset.source</field>
-        <field name="arch" type="xml">
-            <form string="Source">
-                <sheet>
-                    <group>
-                        <field name="code"/>
-                        <field name="name"/>
-                        <field name="url"/>
-                    </group>
-                    <group>
-                        <field name="description"/>
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="view_source_tree" model="ir.ui.view">
-        <field name="name">dataset.source.tree</field>
-        <field name="model">dataset.source</field>
-        <field name="arch" type="xml">
-            <tree string="Sources">
-                <field name="code"/>
-                <field name="name"/>
-                <field name="url"/>
-            </tree>
-        </field>
-    </record>
-
-    <record id="action_source" model="ir.actions.act_window">
-        <field name="name">Sources</field>
-        <field name="res_model">dataset.source</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-
-    <record id="view_package_form" model="ir.ui.view">
-        <field name="name">dataset.package.form</field>
-        <field name="model">dataset.package</field>
-        <field name="arch" type="xml">
-            <form string="Package">
-                <sheet>
-                    <group>
-                        <field name="name"/>
-                        <field name="code"/>
-                        <field name="parent_id"/>
-                    </group>
-                    <group>
-                        <field name="description"/>
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="view_package_tree" model="ir.ui.view">
-        <field name="name">dataset.package.tree</field>
-        <field name="model">dataset.package</field>
-        <field name="arch" type="xml">
-            <tree string="Packages">
-                <field name="name"/>
-                <field name="code"/>
-                <field name="parent_id"/>
-            </tree>
-        </field>
-    </record>
-
-    <record id="action_package" model="ir.actions.act_window">
-        <field name="name">Packages</field>
-        <field name="res_model">dataset.package</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-
-    <record id="view_data_chunk_form" model="ir.ui.view">
-        <field name="name">dataset.data_chunk.form</field>
-        <field name="model">dataset.data_chunk</field>
-        <field name="arch" type="xml">
-            <form string="Data Chunk">
-                <sheet>
-                    <group>
-                        <field name="key"/>
-                        <field name="dataset_id"/>
-                    </group>
-                    <group>
-                        <field name="size"/>
-                        <field name="metadata"/>
-                    </group>
-                    <group>
-                        <field name="description"/>
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="view_data_chunk_tree" model="ir.ui.view">
-        <field name="name">dataset.data_chunk.tree</field>
-        <field name="model">dataset.data_chunk</field>
-        <field name="arch" type="xml">
-            <tree string="Data Chunks">
-                <field name="key"/>
-                <field name="dataset_id"/>
-                <field name="size"/>
-            </tree>
-        </field>
-    </record>
-
-    <record id="action_data_chunk" model="ir.actions.act_window">
-        <field name="name">Data Chunks</field>
-        <field name="res_model">dataset.data_chunk</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-
     <record id="view_dataset_form" model="ir.ui.view">
         <field name="name">dataset.form</field>
         <field name="model">dataset</field>
@@ -129,8 +15,9 @@
                         </group>
                         <group>
                             <field name="name"/>
-                            <field name="state"/>
+                            <field name="manifest_id"/>
                             <field name="total_chunks"/>
+                            <field name="fill_rate" widget="percentage"/>
                         </group>
                     </group>
                     <group>
@@ -139,10 +26,16 @@
                     </group>
                     <group>
                         <field name="chunk_ids">
-                            <tree string="Chunks">
+                            <list string="Chunks">
                                 <field name="key"/>
                                 <field name="size"/>
-                            </tree>
+                                <field name="state" widget="badge"
+                                       decoration-danger="state == 'missing'"
+                                       decoration-warning="state == 'exists'"
+                                       decoration-success="state == 'checked'"/>
+                                <field name="raw_data" filename="raw_data_filename"/>
+                                <field name="raw_data_filename" column_invisible="1"/>
+                            </list>
                         </field>
                     </group>
                 </sheet>
@@ -150,19 +43,83 @@
         </field>
     </record>
 
-    <record id="view_dataset_tree" model="ir.ui.view">
-        <field name="name">dataset.tree</field>
+    <record id="view_dataset_list" model="ir.ui.view">
+        <field name="name">dataset.list</field>
         <field name="model">dataset</field>
         <field name="arch" type="xml">
-            <tree string="Datasets">
+            <list string="Datasets">
                 <field name="code"/>
                 <field name="name"/>
                 <field name="source_id"/>
                 <field name="package_id"/>
+                <field name="manifest_id" optional="hide"/>
                 <field name="chunk_data_type"/>
-                <field name="state"/>
                 <field name="total_chunks"/>
-            </tree>
+                <field name="fill_rate" widget="percentage"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dataset_kanban" model="ir.ui.view">
+        <field name="name">dataset.kanban</field>
+        <field name="model">dataset</field>
+        <field name="arch" type="xml">
+            <kanban sample="1">
+                <field name="package_id"/>
+                <field name="manifest_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="mb-2">
+                            <field name="name" class="fw-bolder fs-5"/>
+                            <field name="code" class="text-muted d-block"/>
+                        </div>
+                        <div>
+                            <i class="fa fa-database me-1"/><field name="source_id"/>
+                        </div>
+                        <div t-if="record.package_id.raw_value">
+                            <i class="fa fa-folder me-1"/><field name="package_id"/>
+                        </div>
+                        <div t-if="record.manifest_id.raw_value" class="mt-2">
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>Fill rate</span>
+                                <span><field name="fill_rate" widget="percentage"/></span>
+                            </div>
+                            <field name="fill_rate" widget="progressbar"
+                                   options="{'editable': false}"/>
+                        </div>
+                        <footer class="pt-2">
+                            <field name="chunk_data_type" widget="badge"/>
+                            <span class="ms-auto text-muted">
+                                <field name="total_chunks"/> chunks
+                            </span>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_dataset_search" model="ir.ui.view">
+        <field name="name">dataset.search</field>
+        <field name="model">dataset</field>
+        <field name="arch" type="xml">
+            <search string="Datasets">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="source_id"/>
+                <field name="package_id"/>
+                <field name="manifest_id"/>
+                <group>
+                    <filter string="Source" name="group_source" domain="[]" context="{'group_by': 'source_id'}"/>
+                    <filter string="Package" name="group_package" domain="[]" context="{'group_by': 'package_id'}"/>
+                    <filter string="Manifest" name="group_manifest" domain="[]" context="{'group_by': 'manifest_id'}"/>
+                    <filter string="Data Type" name="group_data_type" domain="[]" context="{'group_by': 'chunk_data_type'}"/>
+                </group>
+                <searchpanel>
+                    <field name="source_id" string="Sources" select="multi" enable_counters="1" icon="fa-database"/>
+                    <field name="package_id" string="Packages" select="one" enable_counters="1" icon="fa-folder"/>
+                </searchpanel>
+            </search>
         </field>
     </record>
 
@@ -170,6 +127,7 @@
         <field name="name">Datasets</field>
         <field name="res_model">dataset</field>
         <field name="path">datasets</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_dataset_search"/>
     </record>
 </odoo>

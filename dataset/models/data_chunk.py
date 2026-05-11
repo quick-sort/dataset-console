@@ -20,11 +20,29 @@ class DataChunk(models.Model):
     description = fields.Text(string='Description')
     size = fields.Integer(string='Size in bytes')
     metadata = fields.Json(string='Metadata', tracking=True)
+    raw_data = fields.Binary(string='Raw Data', attachment=True)
+    raw_data_filename = fields.Char(string='Raw Data Filename')
+    state = fields.Selection([
+        ('missing', 'Missing'),
+        ('exists', 'Exists'),
+        ('checked', 'Checked'),
+    ], string='State', default='missing', tracking=True)
 
     _key_dataset_unique = models.Constraint(
         'unique(key, dataset_id)',
         "Chunk key must be unique within dataset!",
     )
+
+    def action_edit_metadata(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': self.env._("Edit Metadata"),
+            'res_model': 'dataset.data_chunk.metadata_wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'default_chunk_id': self.id},
+        }
 
     def _compute_key(self):
         for record in self:

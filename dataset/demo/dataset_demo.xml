@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Sources -->
+    <record id="source_huggingface" model="dataset.source">
+        <field name="name">Hugging Face</field>
+        <field name="code">hf</field>
+        <field name="url">https://huggingface.co/datasets</field>
+        <field name="description">Datasets hosted on the Hugging Face Hub.</field>
+    </record>
+
+    <record id="source_kaggle" model="dataset.source">
+        <field name="name">Kaggle</field>
+        <field name="code">kaggle</field>
+        <field name="url">https://www.kaggle.com/datasets</field>
+        <field name="description">Datasets published on Kaggle competitions and community.</field>
+    </record>
+
+    <record id="source_internal" model="dataset.source">
+        <field name="name">Internal</field>
+        <field name="code">internal</field>
+        <field name="description">In-house datasets curated by the data team.</field>
+    </record>
+
+    <!-- Packages (hierarchical) -->
+    <record id="package_nlp" model="dataset.package">
+        <field name="name">NLP</field>
+        <field name="code">nlp</field>
+        <field name="description">Natural Language Processing datasets.</field>
+    </record>
+
+    <record id="package_nlp_classification" model="dataset.package">
+        <field name="name">Text Classification</field>
+        <field name="code">classification</field>
+        <field name="parent_id" ref="package_nlp"/>
+    </record>
+
+    <record id="package_nlp_qa" model="dataset.package">
+        <field name="name">Question Answering</field>
+        <field name="code">qa</field>
+        <field name="parent_id" ref="package_nlp"/>
+    </record>
+
+    <record id="package_vision" model="dataset.package">
+        <field name="name">Computer Vision</field>
+        <field name="code">vision</field>
+        <field name="description">Image and video datasets.</field>
+    </record>
+
+    <record id="package_vision_classification" model="dataset.package">
+        <field name="name">Image Classification</field>
+        <field name="code">classification</field>
+        <field name="parent_id" ref="package_vision"/>
+    </record>
+
+    <record id="package_tabular" model="dataset.package">
+        <field name="name">Tabular</field>
+        <field name="code">tabular</field>
+        <field name="description">Structured / tabular datasets.</field>
+    </record>
+
+    <!-- Manifests -->
+    <record id="manifest_imdb_v1" model="dataset.manifest">
+        <field name="name">imdb-v1</field>
+        <field name="type">dataset</field>
+        <field name="total_chunks">4</field>
+        <field name="description">Initial published manifest for the IMDB Reviews dataset (expects 4 chunks).</field>
+    </record>
+
+    <record id="manifest_squad_v2" model="dataset.manifest">
+        <field name="name">squad-v2</field>
+        <field name="type">dataset</field>
+        <field name="total_chunks">2</field>
+        <field name="description">Manifest for SQuAD v2 with unanswerable questions (expects 2 chunks).</field>
+    </record>
+
+    <!-- Datasets -->
+    <record id="dataset_imdb" model="dataset">
+        <field name="name">IMDB Reviews</field>
+        <field name="code">imdb</field>
+        <field name="source_id" ref="source_huggingface"/>
+        <field name="package_id" ref="package_nlp_classification"/>
+        <field name="manifest_id" ref="manifest_imdb_v1"/>
+        <field name="chunk_data_type">parquet</field>
+        <field name="key_fields" eval="['split', 'shard']"/>
+        <field name="description">50k movie reviews labeled with sentiment (positive/negative).</field>
+    </record>
+
+    <record id="dataset_squad" model="dataset">
+        <field name="name">SQuAD v2</field>
+        <field name="code">squad_v2</field>
+        <field name="source_id" ref="source_huggingface"/>
+        <field name="package_id" ref="package_nlp_qa"/>
+        <field name="manifest_id" ref="manifest_squad_v2"/>
+        <field name="chunk_data_type">json</field>
+        <field name="key_fields" eval="['split']"/>
+        <field name="description">Stanford Question Answering Dataset, version 2 with unanswerable questions.</field>
+    </record>
+
+    <record id="dataset_cifar10" model="dataset">
+        <field name="name">CIFAR-10</field>
+        <field name="code">cifar10</field>
+        <field name="source_id" ref="source_kaggle"/>
+        <field name="package_id" ref="package_vision_classification"/>
+        <field name="chunk_data_type">parquet</field>
+        <field name="key_fields" eval="['split', 'shard']"/>
+        <field name="description">60k 32x32 color images across 10 classes.</field>
+    </record>
+
+    <record id="dataset_titanic" model="dataset">
+        <field name="name">Titanic Survival</field>
+        <field name="code">titanic</field>
+        <field name="source_id" ref="source_kaggle"/>
+        <field name="package_id" ref="package_tabular"/>
+        <field name="chunk_data_type">csv</field>
+        <field name="description">Classic Titanic passenger survival dataset.</field>
+    </record>
+
+    <record id="dataset_internal_support" model="dataset">
+        <field name="name">Support Ticket Triage</field>
+        <field name="code">support_triage</field>
+        <field name="source_id" ref="source_internal"/>
+        <field name="package_id" ref="package_nlp_classification"/>
+        <field name="chunk_data_type">jsonl</field>
+        <field name="key_fields" eval="['lang', 'month']"/>
+        <field name="description">Internal customer support tickets labeled by topic for triage model training.</field>
+    </record>
+
+    <!-- Back-fill the manifest's own dataset_id now that dataset records exist -->
+    <function model="dataset.manifest" name="write" eval="[
+        [ref('manifest_imdb_v1')], {'dataset_id': ref('dataset_imdb')}
+    ]"/>
+    <function model="dataset.manifest" name="write" eval="[
+        [ref('manifest_squad_v2')], {'dataset_id': ref('dataset_squad')}
+    ]"/>
+
+    <!-- Data chunks -->
+    <record id="chunk_imdb_train_0" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_imdb"/>
+        <field name="metadata" eval="{'split': 'train', 'shard': '0001'}"/>
+        <field name="size">12582912</field>
+        <field name="state">checked</field>
+        <field name="description">IMDB train split, shard 0001.</field>
+    </record>
+
+    <record id="chunk_imdb_train_1" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_imdb"/>
+        <field name="metadata" eval="{'split': 'train', 'shard': '0002'}"/>
+        <field name="size">12582912</field>
+        <field name="state">checked</field>
+    </record>
+
+    <record id="chunk_imdb_test_0" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_imdb"/>
+        <field name="metadata" eval="{'split': 'test', 'shard': '0001'}"/>
+        <field name="size">10485760</field>
+        <field name="state">exists</field>
+    </record>
+
+    <record id="chunk_squad_train" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_squad"/>
+        <field name="metadata" eval="{'split': 'train'}"/>
+        <field name="size">42991616</field>
+        <field name="state">exists</field>
+    </record>
+
+    <record id="chunk_squad_dev" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_squad"/>
+        <field name="metadata" eval="{'split': 'dev'}"/>
+        <field name="size">4194304</field>
+        <field name="state">checked</field>
+    </record>
+
+    <record id="chunk_cifar10_train_0" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_cifar10"/>
+        <field name="metadata" eval="{'split': 'train', 'shard': '0001'}"/>
+        <field name="size">52428800</field>
+        <field name="state">checked</field>
+    </record>
+
+    <record id="chunk_cifar10_test_0" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_cifar10"/>
+        <field name="metadata" eval="{'split': 'test', 'shard': '0001'}"/>
+        <field name="size">10485760</field>
+        <field name="state">exists</field>
+    </record>
+
+    <record id="chunk_titanic" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_titanic"/>
+        <field name="metadata" eval="{}"/>
+        <field name="size">61194</field>
+        <field name="state">checked</field>
+        <field name="description">Single CSV with all passengers.</field>
+    </record>
+
+    <record id="chunk_support_en" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_internal_support"/>
+        <field name="metadata" eval="{'lang': 'en', 'month': '2026-04'}"/>
+        <field name="size">0</field>
+        <field name="state">missing</field>
+    </record>
+
+    <record id="chunk_support_fr" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_internal_support"/>
+        <field name="metadata" eval="{'lang': 'fr', 'month': '2026-04'}"/>
+        <field name="size">0</field>
+        <field name="state">missing</field>
+    </record>
+
+</odoo>

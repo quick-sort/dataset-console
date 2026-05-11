@@ -2,6 +2,7 @@
 <odoo>
     <menuitem id="menu_dataset_root"
               name="Dataset"
+              web_icon="dataset,static/description/icon.png"
               action="action_dataset"
               sequence="50"/>
 
@@ -33,4 +34,10 @@
               parent="menu_dataset_settings"
               action="action_package"
               sequence="20"/>
+
+    <menuitem id="menu_manifest"
+              name="Manifests"
+              parent="menu_dataset_settings"
+              action="action_manifest"
+              sequence="30"/>
 </odoo>
