@@ -33,17 +33,6 @@ class DataChunk(models.Model):
         "Chunk key must be unique within dataset!",
     )
 
-    def action_edit_metadata(self):
-        self.ensure_one()
-        return {
-            'type': 'ir.actions.act_window',
-            'name': self.env._("Edit Metadata"),
-            'res_model': 'dataset.data_chunk.metadata_wizard',
-            'view_mode': 'form',
-            'target': 'new',
-            'context': {'default_chunk_id': self.id},
-        }
-
     def _compute_key(self):
         for record in self:
             if not record.dataset_id:

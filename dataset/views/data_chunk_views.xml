@@ -13,13 +13,7 @@
                     </group>
                     <group>
                         <field name="size"/>
-                        <label for="metadata"/>
-                        <div class="o_row">
-                            <field name="metadata"/>
-                            <button name="action_edit_metadata" type="object"
-                                    string="Edit" class="btn-link"
-                                    icon="fa-pencil"/>
-                        </div>
+                        <field name="metadata" widget="json_editor"/>
                     </group>
                     <group>
                         <field name="raw_data" filename="raw_data_filename"/>

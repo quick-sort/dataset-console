@@ -49,6 +49,13 @@ class Dataset(models.Model):
         "Dataset name must be unique per source!",
     )
 
+    def action_view_chunks(self):
+        self.ensure_one()
+        action = self.env['ir.actions.act_window']._for_xml_id('dataset.action_data_chunk')
+        action['domain'] = [('dataset_id', '=', self.id)]
+        action['context'] = {'default_dataset_id': self.id}
+        return action
+
     @api.depends('chunk_ids')
     def _compute_total_chunks(self):
         for record in self:

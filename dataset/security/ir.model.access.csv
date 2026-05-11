@@ -4,4 +4,3 @@ access_dataset_source_user,dataset.source.user,model_dataset_source,base.group_u
 access_dataset_package_user,dataset.package.user,model_dataset_package,base.group_user,1,1,1,1
 access_dataset_data_chunk_user,dataset.data_chunk.user,model_dataset_data_chunk,base.group_user,1,1,1,1
 access_dataset_manifest_user,dataset.manifest.user,model_dataset_manifest,base.group_user,1,1,1,1
-access_dataset_data_chunk_metadata_wizard_user,dataset.data_chunk.metadata_wizard.user,model_dataset_data_chunk_metadata_wizard,base.group_user,1,1,1,1

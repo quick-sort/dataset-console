@@ -6,6 +6,12 @@
         <field name="arch" type="xml">
             <form string="Dataset">
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_chunks" type="object"
+                                class="oe_stat_button" icon="fa-cubes">
+                            <field name="total_chunks" widget="statinfo" string="Chunks"/>
+                        </button>
+                    </div>
                     <group>
                         <group>
                             <field name="code"/>
@@ -16,27 +22,12 @@
                         <group>
                             <field name="name"/>
                             <field name="manifest_id"/>
-                            <field name="total_chunks"/>
                             <field name="fill_rate" widget="percentage"/>
                         </group>
                     </group>
                     <group>
-                        <field name="key_fields"/>
+                        <field name="key_fields" widget="json_editor"/>
                         <field name="description"/>
-                    </group>
-                    <group>
-                        <field name="chunk_ids">
-                            <list string="Chunks">
-                                <field name="key"/>
-                                <field name="size"/>
-                                <field name="state" widget="badge"
-                                       decoration-danger="state == 'missing'"
-                                       decoration-warning="state == 'exists'"
-                                       decoration-success="state == 'checked'"/>
-                                <field name="raw_data" filename="raw_data_filename"/>
-                                <field name="raw_data_filename" column_invisible="1"/>
-                            </list>
-                        </field>
                     </group>
                 </sheet>
             </form>
