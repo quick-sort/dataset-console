@@ -17,7 +17,7 @@
                             <field name="code"/>
                             <field name="source_id"/>
                             <field name="package_id"/>
-                            <field name="chunk_data_type"/>
+                            <field name="chunk_type"/>
                         </group>
                         <group>
                             <field name="name"/>
@@ -44,7 +44,7 @@
                 <field name="source_id"/>
                 <field name="package_id"/>
                 <field name="manifest_id" optional="hide"/>
-                <field name="chunk_data_type"/>
+                <field name="chunk_type"/>
                 <field name="total_chunks"/>
                 <field name="fill_rate" widget="percentage"/>
             </list>
@@ -79,7 +79,7 @@
                                    options="{'editable': false}"/>
                         </div>
                         <footer class="pt-2">
-                            <field name="chunk_data_type" widget="badge"/>
+                            <field name="chunk_type" widget="badge"/>
                             <span class="ms-auto text-muted">
                                 <field name="total_chunks"/> chunks
                             </span>
@@ -104,7 +104,7 @@
                     <filter string="Source" name="group_source" domain="[]" context="{'group_by': 'source_id'}"/>
                     <filter string="Package" name="group_package" domain="[]" context="{'group_by': 'package_id'}"/>
                     <filter string="Manifest" name="group_manifest" domain="[]" context="{'group_by': 'manifest_id'}"/>
-                    <filter string="Data Type" name="group_data_type" domain="[]" context="{'group_by': 'chunk_data_type'}"/>
+                    <filter string="Data Type" name="group_data_type" domain="[]" context="{'group_by': 'chunk_type'}"/>
                 </group>
                 <searchpanel>
                     <field name="source_id" string="Sources" select="multi" enable_counters="1" icon="fa-database"/>

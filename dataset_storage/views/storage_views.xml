@@ -9,7 +9,7 @@
                     <group>
                         <field name="name"/>
                         <field name="backend_type"/>
-                        <field name="is_default"/>
+                        <field name="gzip"/>
                     </group>
                     <group>
                         <field name="config"/>
@@ -26,7 +26,7 @@
             <list string="Storages">
                 <field name="name"/>
                 <field name="backend_type"/>
-                <field name="is_default"/>
+                <field name="gzip"/>
             </list>
         </field>
     </record>
@@ -39,7 +39,7 @@
 
     <menuitem id="menu_storage"
               name="Storages"
-              parent="dataset.menu_dataset_root"
+              parent="dataset.menu_dataset_settings"
               action="action_storage"
               sequence="15"/>
 </odoo>

@@ -81,7 +81,7 @@
         <field name="source_id" ref="source_huggingface"/>
         <field name="package_id" ref="package_nlp_classification"/>
         <field name="manifest_id" ref="manifest_imdb_v1"/>
-        <field name="chunk_data_type">parquet</field>
+        <field name="chunk_type">parquet</field>
         <field name="key_fields" eval="['split', 'shard']"/>
         <field name="description">50k movie reviews labeled with sentiment (positive/negative).</field>
     </record>
@@ -92,7 +92,7 @@
         <field name="source_id" ref="source_huggingface"/>
         <field name="package_id" ref="package_nlp_qa"/>
         <field name="manifest_id" ref="manifest_squad_v2"/>
-        <field name="chunk_data_type">json</field>
+        <field name="chunk_type">json</field>
         <field name="key_fields" eval="['split']"/>
         <field name="description">Stanford Question Answering Dataset, version 2 with unanswerable questions.</field>
     </record>
@@ -102,7 +102,7 @@
         <field name="code">cifar10</field>
         <field name="source_id" ref="source_kaggle"/>
         <field name="package_id" ref="package_vision_classification"/>
-        <field name="chunk_data_type">parquet</field>
+        <field name="chunk_type">parquet</field>
         <field name="key_fields" eval="['split', 'shard']"/>
         <field name="description">60k 32x32 color images across 10 classes.</field>
     </record>
@@ -112,7 +112,7 @@
         <field name="code">titanic</field>
         <field name="source_id" ref="source_kaggle"/>
         <field name="package_id" ref="package_tabular"/>
-        <field name="chunk_data_type">csv</field>
+        <field name="chunk_type">csv</field>
         <field name="description">Classic Titanic passenger survival dataset.</field>
     </record>
 
@@ -121,7 +121,7 @@
         <field name="code">support_triage</field>
         <field name="source_id" ref="source_internal"/>
         <field name="package_id" ref="package_nlp_classification"/>
-        <field name="chunk_data_type">jsonl</field>
+        <field name="chunk_type">jsonl</field>
         <field name="key_fields" eval="['lang', 'month']"/>
         <field name="description">Internal customer support tickets labeled by topic for triage model training.</field>
     </record>

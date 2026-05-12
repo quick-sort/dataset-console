@@ -14,9 +14,14 @@ Provides storage backend for datasets.
     'website': '',
     'license': 'LGPL-3',
     'depends': ['base', 'dataset', 'component'],
+    'external_dependencies': {
+        'python': ['fsspec'],
+    },
     'data': [
         'security/ir.model.access.csv',
         'views/storage_views.xml',
+        'views/dataset_views.xml',
+        'views/data_chunk_views.xml',
     ],
     'installable': True,
     'application': True,

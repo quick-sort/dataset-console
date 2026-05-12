@@ -14,7 +14,7 @@ class Dataset(models.Model):
     package_id = fields.Many2one('dataset.package', string='Package', index=True)
     manifest_id = fields.Many2one('dataset.manifest', string='Manifest', ondelete='set null')
     description = fields.Text(string='Description')
-    chunk_data_type = fields.Selection([
+    chunk_type = fields.Selection([
         ('pdf', 'PDF'),
         ('csv', 'CSV'),
         ('docx', 'Word'),
@@ -22,7 +22,7 @@ class Dataset(models.Model):
         ('json', 'JSON'),
         ('jsonl', 'JSONL'),
         ('parquet', 'Parquet'),
-    ], string='Chunk Data Type', default='csv', tracking=True)
+    ], string='Chunk Type', default='csv', tracking=True)
     key_fields = fields.Json(string='Key Fields', help='List of metadata keys used as chunk keys', tracking=True)
     chunk_ids = fields.One2many('dataset.data_chunk', 'dataset_id', string='Chunks')
     total_chunks = fields.Integer(
@@ -49,17 +49,17 @@ class Dataset(models.Model):
         "Dataset name must be unique per source!",
     )
 
-    def build_chunk_key(self, metadata):
+    def build_chunk_key(self, metadata: dict | None) -> str:
         self.ensure_one()
-        source_code = self.source_id.code
-        dataset_code = self.code
-        data_type = self.chunk_data_type
+        source_code: str = self.source_id.code
+        dataset_code: str = self.code
+        data_type: str = self.chunk_type
         if not source_code or not dataset_code or not data_type:
             raise ValueError("source code, dataset code, and chunk data type are required to build a chunk key")
-        key_fields = self.key_fields or []
+        key_fields: list[str] = self.key_fields or []
         metadata = metadata or {}
         if key_fields:
-            meta_values = [str(metadata.get(k, '')) for k in key_fields]
+            meta_values: list[str] = [str(metadata.get(k, '')) for k in key_fields]
             return f"{source_code}/{dataset_code}/{'/'.join(meta_values)}.{data_type}"
         return f"{source_code}/{dataset_code}.{data_type}"
 

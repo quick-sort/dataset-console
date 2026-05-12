@@ -65,7 +65,7 @@ search-panel navigation.
 | `package_id`      | Many2one      | Optional, indexed.                                                                                          |
 | `manifest_id`     | Many2one      | Optional link to a `dataset.manifest`. `ondelete='set null'`.                                               |
 | `description`     | Text          | Free-form description.                                                                                      |
-| `chunk_data_type` | Selection     | `pdf`, `csv`, `docx`, `xlsx`, `json`, `jsonl`, `parquet`. Default `csv`. Tracked.                           |
+| `chunk_type` | Selection     | `pdf`, `csv`, `docx`, `xlsx`, `json`, `jsonl`, `parquet`. Default `csv`. Tracked.                           |
 | `key_fields`      | Json          | List of metadata keys used to compose each chunk's key. Tracked.                                            |
 | `chunk_ids`       | One2many      | Linked chunks.                                                                                              |
 | `total_chunks`    | Integer       | Computed and stored. `len(chunk_ids)`. Depends on `chunk_ids`.                                              |
@@ -108,9 +108,9 @@ manifest types later is purely additive.
 `key` is computed by `_compute_key`:
 
 * If the dataset has `key_fields`:
-  `{source.code}/{dataset.code}/{metadata[k1]}/{metadata[k2]}/….{chunk_data_type}`
+  `{source.code}/{dataset.code}/{metadata[k1]}/{metadata[k2]}/….{chunk_type}`
 * Otherwise:
-  `{source.code}/{dataset.code}.{chunk_data_type}`
+  `{source.code}/{dataset.code}.{chunk_type}`
 
 The key is unique per dataset and is editable after computation, so manual
 overrides are persisted.
@@ -141,7 +141,7 @@ Dataset
 ```
 
 The companion `dataset_storage` addon adds a **Storages** entry under
-`Dataset`.
+`Dataset → Settings`.
 
 ## Security
 
@@ -183,7 +183,7 @@ ds = env['dataset'].create({
     'code': 'wiki_en_sent',
     'source_id': source.id,
     'package_id': pkg.id,
-    'chunk_data_type': 'jsonl',
+    'chunk_type': 'jsonl',
     'key_fields': ['lang', 'shard'],
 })
 
