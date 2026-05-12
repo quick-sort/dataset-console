@@ -1,0 +1,15 @@
+services:
+  odoo:
+    image: odoo:19.0
+    restart: unless-stopped
+    container_name: dataset_console_dev
+    ports:
+      - "8069:8069"
+    environment:
+      - PIP_INDEX_URL=https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/
+    volumes:
+      - odoo_data:/var/lib/odoo
+      - ./odoo.conf:/etc/odoo/odoo.conf:ro
+      - .:/mnt/extra-addons:ro
+volumes:
+  odoo_data:
