@@ -49,6 +49,20 @@ class Dataset(models.Model):
         "Dataset name must be unique per source!",
     )
 
+    def build_chunk_key(self, metadata):
+        self.ensure_one()
+        source_code = self.source_id.code
+        dataset_code = self.code
+        data_type = self.chunk_data_type
+        if not source_code or not dataset_code or not data_type:
+            raise ValueError("source code, dataset code, and chunk data type are required to build a chunk key")
+        key_fields = self.key_fields or []
+        metadata = metadata or {}
+        if key_fields:
+            meta_values = [str(metadata.get(k, '')) for k in key_fields]
+            return f"{source_code}/{dataset_code}/{'/'.join(meta_values)}.{data_type}"
+        return f"{source_code}/{dataset_code}.{data_type}"
+
     def action_view_chunks(self):
         self.ensure_one()
         action = self.env['ir.actions.act_window']._for_xml_id('dataset.action_data_chunk')
