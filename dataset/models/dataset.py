@@ -63,6 +63,49 @@ class Dataset(models.Model):
             return f"{source_code}/{dataset_code}/{'/'.join(meta_values)}.{data_type}"
         return f"{source_code}/{dataset_code}.{data_type}"
 
+    @classmethod
+    def parse_chunk_key(cls, key: str, key_fields: list[str] | None = None) -> dict:
+        if not key:
+            raise ValueError("key cannot be empty")
+        parts = key.rsplit('.', 1)
+        if len(parts) != 2:
+            raise ValueError(f"invalid key format: {key}")
+        prefix, chunk_type = parts
+        path_parts = prefix.split('/')
+        if len(path_parts) < 2:
+            raise ValueError(f"invalid key format: {key}")
+        source_code, dataset_code = path_parts[0], path_parts[1]
+        meta = {}
+        expected_meta_count = len(path_parts) - 2
+        if key_fields:
+            if len(key_fields) != expected_meta_count:
+                raise ValueError(
+                    f"key_fields length mismatch: expected {expected_meta_count}, got {len(key_fields)}"
+                )
+            values = path_parts[2:]
+            meta = dict(zip(key_fields, values))
+        return {
+            'source_code': source_code,
+            'dataset_code': dataset_code,
+            'chunk_type': chunk_type,
+            'metadata': meta,
+        }
+
+    def scan_chunks(self) -> int:
+        self.ensure_one()
+        storage = self.storage_id
+        if not storage:
+            raise ValueError("no storage configured")
+        keys = storage.list_keys()
+        existing_keys = {chunk.key for chunk in self.chunk_ids if chunk.key}
+        new_keys = [k for k in keys if k not in existing_keys]
+        for key in new_keys:
+            self.env['dataset.data_chunk'].create({
+                'dataset_id': self.id,
+                'key': key,
+            })
+        return len(new_keys)
+
     def action_view_chunks(self):
         self.ensure_one()
         action = self.env['ir.actions.act_window']._for_xml_id('dataset.action_data_chunk')

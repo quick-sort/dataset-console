@@ -52,3 +52,21 @@ class FsspecDatasetStorage(Component):
         fs = self._fs()
         if fs.exists(path):
             fs.rm(path)
+
+    def list_keys(self, prefix: str | None = None) -> list[str]:
+        fs = self._fs()
+        config: dict = self.collection.config or {}
+        root: str = config.get('root', '')
+        search_path = f"{root.rstrip('/')}/{prefix}" if (root and prefix) else (prefix or root)
+        if not search_path:
+            return []
+        paths = fs.find(search_path)
+        result = []
+        for p in paths:
+            rel = p
+            if root:
+                rel = p[len(root) + 1:] if p.startswith(root + '/') else p
+            if self.collection.gzip and rel.endswith('.gzip'):
+                rel = rel[:-5]
+            result.append(rel)
+        return result

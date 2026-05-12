@@ -43,3 +43,6 @@ class Storage(models.Model):
 
     def delete_key(self, key: str) -> None:
         return self._adapter().delete_key(key)
+
+    def list_keys(self, prefix: str | None = None) -> list[str]:
+        return self._adapter().list_keys(prefix)

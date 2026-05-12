@@ -18,3 +18,6 @@ class DatasetStorageBase(AbstractComponent):
 
     def delete_key(self, key: str) -> None:
         raise NotImplementedError
+
+    def list_keys(self, prefix: str | None = None) -> list[str]:
+        raise NotImplementedError
