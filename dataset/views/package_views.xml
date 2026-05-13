@@ -23,7 +23,7 @@
         <field name="name">dataset.package.list</field>
         <field name="model">dataset.package</field>
         <field name="arch" type="xml">
-            <list string="Packages">
+            <list string="Packages" edit="0" create="0" expand="1">
                 <field name="name"/>
                 <field name="code"/>
                 <field name="parent_id"/>

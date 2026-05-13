@@ -12,7 +12,7 @@
                         <field name="gzip"/>
                     </group>
                     <group>
-                        <field name="config"/>
+                        <field name="config" widget="json_editor"/>
                     </group>
                 </sheet>
             </form>
