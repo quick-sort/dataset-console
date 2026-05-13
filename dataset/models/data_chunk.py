@@ -18,7 +18,12 @@ class DataChunk(models.Model):
     )
     dataset_id = fields.Many2one('dataset', string='Dataset', required=True, index=True, ondelete='restrict')
     description = fields.Text(string='Description')
-    size = fields.Integer(string='Size in bytes')
+    size = fields.Integer(
+        string='Size in bytes',
+        compute='_compute_size',
+        store=True,
+        readonly=True,
+    )
     metadata = fields.Json(string='Metadata', tracking=True)
     raw_data = fields.Binary(string='Raw Data', attachment=True)
     raw_data_filename = fields.Char(string='Raw Data Filename')
@@ -39,3 +44,17 @@ class DataChunk(models.Model):
                 record.key = False
                 continue
             record.key = record.dataset_id.build_chunk_key(record.metadata)
+
+    def _compute_size(self):
+        for record in self:
+            if not record.dataset_id or not record.key:
+                record.size = 0
+                continue
+            storage = record.dataset_id.storage_id
+            if not storage:
+                record.size = 0
+                continue
+            try:
+                record.size = storage.get_size(record.key)
+            except Exception:
+                record.size = 0

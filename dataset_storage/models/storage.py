@@ -46,3 +46,6 @@ class Storage(models.Model):
 
     def list_keys(self, prefix: str | None = None) -> list[str]:
         return self._adapter().list_keys(prefix)
+
+    def get_size(self, key: str) -> int:
+        return self._adapter().get_size(key)

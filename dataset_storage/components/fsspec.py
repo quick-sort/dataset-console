@@ -70,3 +70,8 @@ class FsspecDatasetStorage(Component):
                 rel = rel[:-5]
             result.append(rel)
         return result
+
+    def get_size(self, key: str) -> int:
+        path = self._path(key)
+        info = self._fs().info(path)
+        return info.get('size', 0)

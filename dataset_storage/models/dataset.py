@@ -1,12 +1,32 @@
 # -*- coding: utf-8 -*-
 
-from odoo import models, fields
+from odoo import models, fields, api
 
 
 class Dataset(models.Model):
     _inherit = 'dataset'
 
     storage_id = fields.Many2one('dataset.storage', string='Storage', ondelete='restrict')
+    size = fields.Integer(
+        string='Size in bytes',
+        compute='_compute_size',
+        store=True,
+        readonly=True,
+    )
+
+    @api.depends('storage_id', 'chunk_ids.key')
+    def _compute_size(self):
+        for record in self:
+            if not record.storage_id or not record.chunk_ids:
+                record.size = 0
+                continue
+            total = 0
+            for chunk in record.chunk_ids.filtered('key'):
+                try:
+                    total += record.storage_id.get_size(chunk.key)
+                except Exception:
+                    pass
+            record.size = total
 
     def scan_chunks(self) -> int:
         self.ensure_one()

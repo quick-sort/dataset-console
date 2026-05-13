@@ -21,3 +21,6 @@ class DatasetStorageBase(AbstractComponent):
 
     def list_keys(self, prefix: str | None = None) -> list[str]:
         raise NotImplementedError
+
+    def get_size(self, key: str) -> int:
+        raise NotImplementedError
