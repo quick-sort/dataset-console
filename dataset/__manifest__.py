@@ -46,6 +46,9 @@ companion ``dataset_storage`` addon and its backend-specific extensions.
     'demo': [
         'demo/dataset_demo.xml',
     ],
+    'test': [
+        'tests/test_dataset.py',
+    ],
     'images': [
         'static/description/stock.svg',
     ],

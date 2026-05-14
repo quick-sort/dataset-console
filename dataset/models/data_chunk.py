@@ -13,7 +13,6 @@ class DataChunk(models.Model):
         compute='_compute_key',
         store=True,
         readonly=False,
-        tracking=True,
         index=True,
     )
     dataset_id = fields.Many2one('dataset', string='Dataset', required=True, index=True, ondelete='restrict')

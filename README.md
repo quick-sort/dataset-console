@@ -57,17 +57,17 @@ chunk = env['dataset.data_chunk'].create({
 
 ## Architecture
 
-```
-dataset          dataset_storage        component
-     │                 │                  │
-     └────────┬────────┘                  │
-              │                           │
-              │    storage_id ───────────┘ (work_on)
-              │
-        data_chunk
-              │
-              └───────── raw_data read/write → fsspec component
-                                    (file, s3, gcs, …)
+```mermaid
+flowchart TD
+    dataset[dataset addon<br/>metadata catalog] --> dataset_storage
+    component[component addon<br/>registry] --> dataset_storage
+    dataset_storage[dataset_storage addon<br/>storage backend] --- data_chunk[data_chunk<br/>raw_data]
+
+    data_chunk -- read/write --> fsspec[fsspec<br/>file·s3·gcs·azure]
+
+    dataset_storage -- storage_id --> dataset
+
+    linkStyle 3,4 stroke-width:0
 ```
 
 The `dataset` addon is the metadata catalog. `dataset_storage` extends it with:

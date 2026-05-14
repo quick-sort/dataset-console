@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Local file storage -->
+    <record id="storage_local" model="dataset.storage">
+        <field name="name">Local</field>
+        <field name="backend_type">fsspec</field>
+        <field name="config">{"protocol": "file", "root": "/var/lib/datasets"}</field>
+        <field name="gzip" eval="True"/>
+    </record>
+
+    <!-- S3 storage (example config) -->
+    <record id="storage_s3" model="dataset.storage">
+        <field name="name">S3 Bucket</field>
+        <field name="backend_type">fsspec</field>
+        <field name="config">{"protocol": "s3", "bucket": "ai-datasets", "key": "${AWS_ACCESS_KEY_ID}", "secret": "${AWS_SECRET_ACCESS_KEY}"}</field>
+        <field name="gzip" eval="True"/>
+    </record>
+
+    <!-- Link storages to datasets -->
+    <function model="dataset" name="write" eval="[
+        [ref('dataset.dataset_imdb')], {'storage_id': ref('dataset_storage.storage_local')}
+    ]"/>
+    <function model="dataset" name="write" eval="[
+        [ref('dataset.dataset_squad')], {'storage_id': ref('dataset_storage.storage_local')}
+    ]"/>
+    <function model="dataset" name="write" eval="[
+        [ref('dataset.dataset_cifar10')], {'storage_id': ref('dataset_storage.storage_local')}
+    ]"/>
+    <function model="dataset" name="write" eval="[
+        [ref('dataset.dataset_titanic')], {'storage_id': ref('dataset_storage.storage_local')}
+    ]"/>
+
+</odoo>

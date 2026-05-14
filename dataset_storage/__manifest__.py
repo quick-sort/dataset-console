@@ -23,6 +23,12 @@ Provides storage backend for datasets.
         'views/dataset_views.xml',
         'views/data_chunk_views.xml',
     ],
+    'demo': [
+        'demo/demo.xml',
+    ],
+    'test': [
+        'tests/test_storage.py',
+    ],
     'installable': True,
     'application': True,
 }
