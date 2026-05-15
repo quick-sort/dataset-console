@@ -36,12 +36,29 @@ class FsspecDatasetStorage(Component):
         if fs.exists(key):
             fs.rm(key)
 
-    def list_keys(self, prefix: str | None = None) -> list[str]:
+    def list_keys_sized(self, prefix: str | None = None) -> list[tuple[str, int]]:
+        """Return [(path, size)] in a single backend call.
+
+        Uses ``fs.find(prefix, detail=True)`` so the size for each entry is
+        read from the listing response (S3 ``ListObjectsV2`` already includes
+        it) — no per-key HEAD request.
+        """
         fs = self._fs()
         if not prefix:
             return []
-        paths = fs.find(prefix)
-        return [p.rstrip('/') for p in paths if p != prefix]
+        info = fs.find(prefix, detail=True)
+        out: list[tuple[str, int]] = []
+        for path, meta in info.items():
+            if path == prefix:
+                continue
+            if isinstance(meta, dict):
+                if meta.get('type') == 'directory':
+                    continue
+                size = int(meta.get('size') or 0)
+            else:
+                size = 0
+            out.append((path.rstrip('/'), size))
+        return out
 
     def get_size(self, key: str) -> int:
         info = self._fs().info(key)

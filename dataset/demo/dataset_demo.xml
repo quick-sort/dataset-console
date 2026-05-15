@@ -207,4 +207,185 @@
         <field name="state">missing</field>
     </record>
 
+    <!--
+        HKEX market data: two related datasets that together demo
+        cross-dataset manifest linking.
+
+        - `trade_calendar` enumerates trading days, one chunk per year.
+        - `stock_quote` carries one daily OHLCV chunk per trading day.
+
+        Novelty: `stock_quote.manifest_id` points at a manifest whose own
+        `dataset_id` is `trade_calendar` — i.e. "the expected chunk count for
+        stock_quote is defined by trade_calendar". This is allowed because
+        `dataset.manifest_id` and `dataset.manifest.dataset_id` are
+        independent fields, and is the intended pattern for "this dataset is
+        governed by that catalog".
+
+        Order matters: trade_calendar must exist before the manifest, so we
+        declare records in dependency order and avoid the `<function>` back-
+        fill used by the imdb / squad manifests above.
+    -->
+    <record id="source_hkex" model="dataset.source">
+        <field name="name">HKEX</field>
+        <field name="code">hkex</field>
+        <field name="url">https://www.hkex.com.hk</field>
+        <field name="description">Hong Kong Exchanges and Clearing — listed equities and market data.</field>
+    </record>
+
+    <record id="package_markets" model="dataset.package">
+        <field name="name">Markets</field>
+        <field name="code">markets</field>
+        <field name="description">Financial market data: calendars, quotes, fundamentals.</field>
+    </record>
+
+    <record id="dataset_hkex_calendar" model="dataset">
+        <field name="name">HKEX Trade Calendar</field>
+        <field name="code">trade_calendar</field>
+        <field name="source_id" ref="source_hkex"/>
+        <field name="package_id" ref="package_markets"/>
+        <field name="chunk_type">csv</field>
+        <field name="key_fields" eval="['year']"/>
+        <field name="description">Annual list of HKEX trading days. Authoritative source of "expected chunks" for daily-partitioned datasets like stock_quote.</field>
+    </record>
+
+    <record id="manifest_hkex_quote_2026" model="dataset.manifest">
+        <field name="name">hkex-quote-2026</field>
+        <field name="type">dataset</field>
+        <field name="dataset_id" ref="dataset_hkex_calendar"/>
+        <field name="total_chunks">247</field>
+        <field name="description">Expected daily quote chunks for HKEX in 2026, governed by the trade_calendar dataset (~247 trading days/year).</field>
+    </record>
+
+    <record id="dataset_hkex_quote" model="dataset">
+        <field name="name">HKEX Stock Quote</field>
+        <field name="code">stock_quote</field>
+        <field name="source_id" ref="source_hkex"/>
+        <field name="package_id" ref="package_markets"/>
+        <field name="manifest_id" ref="manifest_hkex_quote_2026"/>
+        <field name="chunk_type">parquet</field>
+        <field name="key_fields" eval="['date']"/>
+        <field name="description">Daily OHLCV snapshot for all HKEX-listed stocks; one chunk per trading day. Expected count is governed by trade_calendar.</field>
+    </record>
+
+    <record id="chunk_hkex_calendar_2025" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_hkex_calendar"/>
+        <field name="metadata" eval="{'year': '2025'}"/>
+        <field name="size">8192</field>
+        <field name="state">checked</field>
+        <field name="description">2025 HKEX trading-day list.</field>
+    </record>
+
+    <record id="chunk_hkex_calendar_2026" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_hkex_calendar"/>
+        <field name="metadata" eval="{'year': '2026'}"/>
+        <field name="size">8192</field>
+        <field name="state">checked</field>
+        <field name="description">2026 HKEX trading-day list.</field>
+    </record>
+
+    <record id="chunk_hkex_quote_2026_01_02" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_hkex_quote"/>
+        <field name="metadata" eval="{'date': '2026-01-02'}"/>
+        <field name="size">62914560</field>
+        <field name="state">checked</field>
+    </record>
+
+    <record id="chunk_hkex_quote_2026_01_05" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_hkex_quote"/>
+        <field name="metadata" eval="{'date': '2026-01-05'}"/>
+        <field name="size">61865984</field>
+        <field name="state">checked</field>
+    </record>
+
+    <record id="chunk_hkex_quote_2026_05_14" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_hkex_quote"/>
+        <field name="metadata" eval="{'date': '2026-05-14'}"/>
+        <field name="size">63438848</field>
+        <field name="state">exists</field>
+    </record>
+
+    <record id="chunk_hkex_quote_2026_05_15" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_hkex_quote"/>
+        <field name="metadata" eval="{'date': '2026-05-15'}"/>
+        <field name="size">0</field>
+        <field name="state">missing</field>
+        <field name="description">Today's quote — listed in catalog by trade_calendar but not yet ingested.</field>
+    </record>
+
+    <!--
+        CDE guidelines: a regulatory document corpus where every chunk is a
+        standalone PDF identified by (publish_date, rule_name, doc_serial).
+
+        Keys look like:
+            cde/guidelines/2024-08-15/biosimilar_clinical/2024-127H.pdf
+
+        This is intentionally NOT a Hive-style partition layout. A pattern like
+        `dt=2026-01-01/region=us/data.csv` bundles many records under a
+        column-equals-value partition — fine for a row-oriented CSV/Parquet
+        scan, but meaningless when the chunk *is* the document. Here each PDF
+        carries its own (date, rule, serial) tuple, the metadata is positional
+        in the path, and the leaf filename is the document itself, not a
+        partition file.
+    -->
+    <record id="source_cde" model="dataset.source">
+        <field name="name">CDE</field>
+        <field name="code">cde</field>
+        <field name="url">https://www.cde.org.cn</field>
+        <field name="description">Center for Drug Evaluation — published drug review technical guidelines.</field>
+    </record>
+
+    <record id="package_regulatory" model="dataset.package">
+        <field name="name">Regulatory</field>
+        <field name="code">regulatory</field>
+        <field name="description">Regulatory and compliance document corpora.</field>
+    </record>
+
+    <record id="package_regulatory_guidelines" model="dataset.package">
+        <field name="name">Guidelines</field>
+        <field name="code">guidelines</field>
+        <field name="parent_id" ref="package_regulatory"/>
+    </record>
+
+    <record id="dataset_cde_guidelines" model="dataset">
+        <field name="name">CDE Drug Review Guidelines</field>
+        <field name="code">guidelines</field>
+        <field name="source_id" ref="source_cde"/>
+        <field name="package_id" ref="package_regulatory_guidelines"/>
+        <field name="chunk_type">pdf</field>
+        <field name="key_fields" eval="['publish_date', 'rule_name', 'doc_serial']"/>
+        <field name="description">Published technical guidelines for drug evaluation. Each chunk is one official PDF identified by (publish_date, rule_name, doc_serial).</field>
+    </record>
+
+    <record id="chunk_cde_biosimilar_clinical" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_cde_guidelines"/>
+        <field name="metadata" eval="{'publish_date': '2024-08-15', 'rule_name': 'biosimilar_clinical', 'doc_serial': '2024-127H'}"/>
+        <field name="size">3145728</field>
+        <field name="state">checked</field>
+        <field name="description">Clinical comparability technical guideline for biosimilars.</field>
+    </record>
+
+    <record id="chunk_cde_pediatric_pk" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_cde_guidelines"/>
+        <field name="metadata" eval="{'publish_date': '2025-03-21', 'rule_name': 'pediatric_pk', 'doc_serial': '2025-045G'}"/>
+        <field name="size">2097152</field>
+        <field name="state">checked</field>
+        <field name="description">Pharmacokinetic study design guideline for pediatric drug development.</field>
+    </record>
+
+    <record id="chunk_cde_oncology_rwe" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_cde_guidelines"/>
+        <field name="metadata" eval="{'publish_date': '2025-11-04', 'rule_name': 'oncology_real_world_evidence', 'doc_serial': '2025-218B'}"/>
+        <field name="size">4718592</field>
+        <field name="state">exists</field>
+        <field name="description">Use of real-world evidence to support oncology drug review.</field>
+    </record>
+
+    <record id="chunk_cde_gene_therapy_cmc" model="dataset.data_chunk">
+        <field name="dataset_id" ref="dataset_cde_guidelines"/>
+        <field name="metadata" eval="{'publish_date': '2026-01-09', 'rule_name': 'gene_therapy_cmc', 'doc_serial': '2026-003A'}"/>
+        <field name="size">0</field>
+        <field name="state">missing</field>
+        <field name="description">CMC requirements for gene therapy products — listed in catalog, file not yet ingested.</field>
+    </record>
+
 </odoo>

@@ -39,7 +39,6 @@ ds = env['dataset'].create({
 storage = env['dataset.storage'].create({
     'name': 'local',
     'config': {'protocol': 'file', 'root': '/var/lib/datasets'},
-    'gzip': True,
 })
 ds.storage_id = storage
 
@@ -85,7 +84,7 @@ storage.write_key(key: str, data: bytes) -> None
 storage.delete_key(key: str) -> None
 ```
 
-When `storage.gzip` is enabled, payloads are gzip-compressed automatically and `.gzip` is appended to the key.
+Compression is decided per-key: if the chunk type encoded in the key is in this storage's `gzip_chunk_types` (default `["csv", "json", "jsonl"]`), the payload is gzip-compressed and `.gz` is appended to the resolved path. Other extensions (parquet by default) pass through untouched.
 
 ## License
 

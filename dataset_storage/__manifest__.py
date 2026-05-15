@@ -13,7 +13,7 @@ Provides storage backend for datasets.
     'author': 'Quick Sort',
     'website': '',
     'license': 'LGPL-3',
-    'depends': ['base', 'dataset', 'component'],
+    'depends': ['base', 'dataset', 'component', 'queue_job'],
     'external_dependencies': {
         'python': ['fsspec'],
     },

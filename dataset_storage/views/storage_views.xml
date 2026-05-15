@@ -9,7 +9,7 @@
                     <group>
                         <field name="name"/>
                         <field name="backend_type"/>
-                        <field name="gzip"/>
+                        <field name="gzip_chunk_types" widget="json_editor"/>
                     </group>
                     <group>
                         <field name="config" widget="json_editor"/>
@@ -26,7 +26,6 @@
             <list string="Storages">
                 <field name="name"/>
                 <field name="backend_type"/>
-                <field name="gzip"/>
             </list>
         </field>
     </record>

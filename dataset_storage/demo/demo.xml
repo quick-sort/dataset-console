@@ -1,20 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo noupdate="1">
 
-    <!-- Local file storage -->
+    <!--
+        Local file storage. `root` is prepended to every chunk key by
+        `Storage._resolve_key`. Whether `.gz` is appended is decided per-key
+        by `gzip_chunk_types` (default ["csv", "json", "jsonl"]):
+
+          hf/imdb/train/0001.parquet  → /var/lib/datasets/hf/imdb/train/0001.parquet
+          hf/squad_v2/train.json      → /var/lib/datasets/hf/squad_v2/train.json.gz
+    -->
     <record id="storage_local" model="dataset.storage">
         <field name="name">Local</field>
         <field name="backend_type">fsspec</field>
         <field name="config">{"protocol": "file", "root": "/var/lib/datasets"}</field>
-        <field name="gzip" eval="True"/>
     </record>
 
-    <!-- S3 storage (example config) -->
+    <!--
+        S3 storage. fsspec credentials must live under `storage_options` —
+        the fsspec component reads only `protocol` and `storage_options`
+        from config (see dataset_storage/components/fsspec.py:_fs); top-level
+        keys like `bucket` / `key` / `secret` are silently ignored. Use
+        `root` for the bucket-and-prefix path.
+    -->
     <record id="storage_s3" model="dataset.storage">
         <field name="name">S3 Bucket</field>
         <field name="backend_type">fsspec</field>
-        <field name="config">{"protocol": "s3", "bucket": "ai-datasets", "key": "${AWS_ACCESS_KEY_ID}", "secret": "${AWS_SECRET_ACCESS_KEY}"}</field>
-        <field name="gzip" eval="True"/>
+        <field name="config">{"protocol": "s3", "root": "ai-datasets", "storage_options": {"key": "${AWS_ACCESS_KEY_ID}", "secret": "${AWS_SECRET_ACCESS_KEY}", "client_kwargs": {"region_name": "ap-east-1"}}}</field>
     </record>
 
     <!-- Link storages to datasets -->
@@ -29,6 +40,15 @@
     ]"/>
     <function model="dataset" name="write" eval="[
         [ref('dataset.dataset_titanic')], {'storage_id': ref('dataset_storage.storage_local')}
+    ]"/>
+    <function model="dataset" name="write" eval="[
+        [ref('dataset.dataset_cde_guidelines')], {'storage_id': ref('dataset_storage.storage_local')}
+    ]"/>
+    <function model="dataset" name="write" eval="[
+        [ref('dataset.dataset_hkex_calendar')], {'storage_id': ref('dataset_storage.storage_s3')}
+    ]"/>
+    <function model="dataset" name="write" eval="[
+        [ref('dataset.dataset_hkex_quote')], {'storage_id': ref('dataset_storage.storage_s3')}
     ]"/>
 
 </odoo>
