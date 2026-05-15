@@ -12,8 +12,6 @@
                             <field name="type"/>
                         </group>
                         <group>
-                            <field name="dataset_id" invisible="type != 'dataset'"
-                                   required="type == 'dataset'"/>
                             <field name="total_chunks"/>
                         </group>
                     </group>
@@ -32,7 +30,6 @@
             <list string="Manifests">
                 <field name="name"/>
                 <field name="type"/>
-                <field name="dataset_id"/>
                 <field name="total_chunks"/>
             </list>
         </field>
@@ -44,11 +41,9 @@
         <field name="arch" type="xml">
             <search string="Manifests">
                 <field name="name"/>
-                <field name="dataset_id"/>
                 <filter string="Dataset" name="type_dataset" domain="[('type', '=', 'dataset')]"/>
                 <group>
                     <filter string="Type" name="group_type" domain="[]" context="{'group_by': 'type'}"/>
-                    <filter string="Dataset" name="group_dataset" domain="[]" context="{'group_by': 'dataset_id'}"/>
                 </group>
             </search>
         </field>

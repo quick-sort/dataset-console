@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_manifest_form_dataframe" model="ir.ui.view">
+        <field name="name">dataset.manifest.form.dataframe</field>
+        <field name="model">dataset.manifest</field>
+        <field name="inherit_id" ref="dataset.view_manifest_form"/>
+        <field name="arch" type="xml">
+            <field name="total_chunks" position="before">
+                <field name="dataset_id" invisible="type != 'dataset'"
+                       required="type == 'dataset'"/>
+            </field>
+            <field name="total_chunks" position="after">
+                <field name="values" widget="json"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_manifest_list_dataframe" model="ir.ui.view">
+        <field name="name">dataset.manifest.list.dataframe</field>
+        <field name="model">dataset.manifest</field>
+        <field name="inherit_id" ref="dataset.view_manifest_list"/>
+        <field name="arch" type="xml">
+            <field name="type" position="after">
+                <field name="dataset_id"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_manifest_search_dataframe" model="ir.ui.view">
+        <field name="name">dataset.manifest.search.dataframe</field>
+        <field name="model">dataset.manifest</field>
+        <field name="inherit_id" ref="dataset.view_manifest_search"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="dataset_id"/>
+            </field>
+            <filter name="group_type" position="after">
+                <filter string="Dataset" name="group_dataset" domain="[]"
+                        context="{'group_by': 'dataset_id'}"/>
+            </filter>
+        </field>
+    </record>
+
+</odoo>

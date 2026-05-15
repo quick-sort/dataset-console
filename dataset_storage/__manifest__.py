@@ -19,6 +19,7 @@ Provides storage backend for datasets.
     },
     'data': [
         'security/ir.model.access.csv',
+        'data/storage_data.xml',
         'views/storage_views.xml',
         'views/dataset_views.xml',
         'views/data_chunk_views.xml',

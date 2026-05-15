@@ -11,5 +11,6 @@ services:
       - odoo_data:/var/lib/odoo
       - ./odoo.conf:/etc/odoo/odoo.conf:ro
       - .:/mnt/extra-addons:ro
+      - ./datasets:/mnt/datasets
 volumes:
   odoo_data:

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!--
+        Back-fill manifest.dataset_id for the demo manifests defined in
+        dataset/demo/dataset_demo.xml. The field lives in this addon
+        (dataset_dataframe), so the wiring belongs here too.
+
+        Note: stock_quote.manifest_id → manifest_hkex_quote_2026, whose
+        own dataset_id points at trade_calendar — i.e. "stock_quote's
+        expected chunk count is governed by trade_calendar".
+    -->
+    <function model="dataset.manifest" name="write" eval="[
+        [ref('dataset.manifest_imdb_v1')], {'dataset_id': ref('dataset.dataset_imdb')}
+    ]"/>
+    <function model="dataset.manifest" name="write" eval="[
+        [ref('dataset.manifest_squad_v2')], {'dataset_id': ref('dataset.dataset_squad')}
+    ]"/>
+    <function model="dataset.manifest" name="write" eval="[
+        [ref('dataset.manifest_hkex_quote_2026')], {'dataset_id': ref('dataset.dataset_hkex_calendar')}
+    ]"/>
+
+</odoo>

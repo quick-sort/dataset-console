@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!--
+        Local file storage. `root` is prepended to every chunk key by
+        `Storage._resolve_key`. Whether `.gz` is appended is decided per-key
+        by `gzip_chunk_types` (default ["csv", "json", "jsonl"]):
+
+          hf/imdb/train/0001.parquet  → /mnt/datasets/hf/imdb/train/0001.parquet
+          hf/squad_v2/train.json      → /mnt/datasets/hf/squad_v2/train.json.gz
+    -->
+    <record id="storage_local" model="dataset.storage">
+        <field name="name">Local</field>
+        <field name="backend_type">fsspec</field>
+        <field name="config">{"protocol": "file", "root": "/mnt/datasets"}</field>
+    </record>
+
+    <!--
+        S3 storage. fsspec credentials must live under `storage_options` —
+        the fsspec component reads only `protocol` and `storage_options`
+        from config (see dataset_storage/components/fsspec.py:_fs); top-level
+        keys like `bucket` / `key` / `secret` are silently ignored. Use
+        `root` for the bucket-and-prefix path.
+    -->
+    <record id="storage_s3" model="dataset.storage">
+        <field name="name">S3 Bucket</field>
+        <field name="backend_type">fsspec</field>
+        <field name="config">{"protocol": "s3", "root": "ai-datasets", "storage_options": {"key": "${AWS_ACCESS_KEY_ID}", "secret": "${AWS_SECRET_ACCESS_KEY}", "client_kwargs": {"region_name": "ap-east-1"}}}</field>
+    </record>
+
+</odoo>

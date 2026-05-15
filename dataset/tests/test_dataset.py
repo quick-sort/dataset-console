@@ -172,9 +172,9 @@ class TestDataset(common.TransactionCase):
         })
         manifest = self.env['dataset.manifest'].create({
             'name': 'imdb-v1',
-            'dataset_id': dataset.id,
-            'total_chunks': 4,
+            'values': [{'i': i} for i in range(4)],
         })
+        dataset.manifest_id = manifest
         self.env['dataset.data_chunk'].create([
             {'dataset_id': dataset.id},
             {'dataset_id': dataset.id},

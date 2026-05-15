@@ -63,14 +63,22 @@
     <record id="manifest_imdb_v1" model="dataset.manifest">
         <field name="name">imdb-v1</field>
         <field name="type">dataset</field>
-        <field name="total_chunks">4</field>
+        <field name="values" eval="[
+            {'split': 'train', 'shard': '0001'},
+            {'split': 'train', 'shard': '0002'},
+            {'split': 'test',  'shard': '0001'},
+            {'split': 'test',  'shard': '0002'},
+        ]"/>
         <field name="description">Initial published manifest for the IMDB Reviews dataset (expects 4 chunks).</field>
     </record>
 
     <record id="manifest_squad_v2" model="dataset.manifest">
         <field name="name">squad-v2</field>
         <field name="type">dataset</field>
-        <field name="total_chunks">2</field>
+        <field name="values" eval="[
+            {'split': 'train'},
+            {'split': 'dev'},
+        ]"/>
         <field name="description">Manifest for SQuAD v2 with unanswerable questions (expects 2 chunks).</field>
     </record>
 
@@ -125,14 +133,6 @@
         <field name="key_fields" eval="['lang', 'month']"/>
         <field name="description">Internal customer support tickets labeled by topic for triage model training.</field>
     </record>
-
-    <!-- Back-fill the manifest's own dataset_id now that dataset records exist -->
-    <function model="dataset.manifest" name="write" eval="[
-        [ref('manifest_imdb_v1')], {'dataset_id': ref('dataset_imdb')}
-    ]"/>
-    <function model="dataset.manifest" name="write" eval="[
-        [ref('manifest_squad_v2')], {'dataset_id': ref('dataset_squad')}
-    ]"/>
 
     <!-- Data chunks -->
     <record id="chunk_imdb_train_0" model="dataset.data_chunk">
@@ -208,22 +208,10 @@
     </record>
 
     <!--
-        HKEX market data: two related datasets that together demo
-        cross-dataset manifest linking.
-
-        - `trade_calendar` enumerates trading days, one chunk per year.
-        - `stock_quote` carries one daily OHLCV chunk per trading day.
-
-        Novelty: `stock_quote.manifest_id` points at a manifest whose own
-        `dataset_id` is `trade_calendar` — i.e. "the expected chunk count for
-        stock_quote is defined by trade_calendar". This is allowed because
-        `dataset.manifest_id` and `dataset.manifest.dataset_id` are
-        independent fields, and is the intended pattern for "this dataset is
-        governed by that catalog".
-
-        Order matters: trade_calendar must exist before the manifest, so we
-        declare records in dependency order and avoid the `<function>` back-
-        fill used by the imdb / squad manifests above.
+        HKEX market data: a manifest declares the expected number of
+        trading-day chunks for stock_quote; the linkage from manifest to
+        its source dataset (trade_calendar) lives in the dataset_dataframe
+        addon and is wired up in that addon's demo file.
     -->
     <record id="source_hkex" model="dataset.source">
         <field name="name">HKEX</field>
@@ -251,8 +239,14 @@
     <record id="manifest_hkex_quote_2026" model="dataset.manifest">
         <field name="name">hkex-quote-2026</field>
         <field name="type">dataset</field>
-        <field name="dataset_id" ref="dataset_hkex_calendar"/>
-        <field name="total_chunks">247</field>
+        <!-- Truncated sample; the full 247-day list is auto-derived from
+             trade_calendar when dataset_dataframe is installed. total_chunks
+             is computed as len(values). -->
+        <field name="values" eval="[
+            {'date': '2026-01-02'},
+            {'date': '2026-01-05'},
+            {'date': '2026-01-06'},
+        ]"/>
         <field name="description">Expected daily quote chunks for HKEX in 2026, governed by the trade_calendar dataset (~247 trading days/year).</field>
     </record>
 

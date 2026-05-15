@@ -73,22 +73,22 @@ search-panel navigation.
 
 ### `dataset.manifest`
 
-A descriptor record that can point at a dataset. The `type` selection is the
-extension point — today it only declares `dataset`, but additional types can
-be added later (with a corresponding typed reference field). A dataset
-references its current manifest via `dataset.manifest_id`, and the manifest
-itself records its target via `dataset_id`.
+A descriptor record. The `type` selection is the extension point — today it
+only declares `dataset`, but additional types can be added later (with a
+corresponding typed reference field). A dataset references its current
+manifest via `dataset.manifest_id`.
 
 | Field          | Type      | Notes                                                                                       |
 | -------------- | --------- | ------------------------------------------------------------------------------------------- |
 | `name`         | Char      | Required, **unique**.                                                                       |
 | `description`  | Text      | Free-form description.                                                                      |
 | `type`         | Selection | Required. Currently only `dataset`. Default `dataset`.                                      |
-| `dataset_id`   | Many2one  | Linked dataset. `ondelete='set null'`. Required when `type='dataset'`.                      |
-| `total_chunks` | Integer   | **Expected** chunk count declared by this manifest. User-entered, default 0. Used as the denominator of `dataset.fill_rate`. |
+| `values`       | Json      | List of chunk metadata dicts declared by this manifest, e.g. `[{"split": "train", "shard": "0001"}, ...]`. Each dict maps the dataset's `key_fields` to the value identifying one expected chunk. |
+| `total_chunks` | Integer   | Computed and stored. `len(values)`. Used as the denominator of `dataset.fill_rate`. Depends on `values`. |
 
-The form view hides/requires `dataset_id` based on `type` so adding more
-manifest types later is purely additive.
+The companion `dataset_dataframe` addon adds a `dataset_id` Many2one back to
+`dataset` and overrides `values` to auto-derive from that dataset's chunk
+metadata.
 
 ### `dataset.data_chunk`
 
