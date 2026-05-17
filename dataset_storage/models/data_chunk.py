@@ -14,14 +14,25 @@ class DataChunk(models.Model):
         inverse='_inverse_raw_data',
         attachment=False,
     )
+    size = fields.Integer('Size in bytes')
 
     def _compute_raw_data(self) -> None:
         for record in self:
             storage = record.dataset_id.storage_id
             if not storage or not record.key or not storage.key_exist(record.key):
                 record.raw_data = False
-                continue
-            record.raw_data = base64.b64encode(storage.read_key(record.key))
+                new_size = 0
+            else:
+                data = storage.read_key(record.key)
+                if not data:
+                    record.raw_data = False
+                    new_size = 0
+                else:
+                    record.raw_data = base64.b64encode(data)
+                    new_size = len(data)
+
+            if record.size != new_size:
+                record.write({'size': new_size})
 
     def _inverse_raw_data(self) -> None:
         for record in self:
@@ -29,9 +40,13 @@ class DataChunk(models.Model):
             if not storage or not record.key:
                 continue
             if record.raw_data:
-                storage.write_key(record.key, base64.b64decode(record.raw_data))
+                data = base64.b64decode(record.raw_data)
+                new_size = len(data)
+                record.write({'size': new_size})
+                storage.write_key(record.key, data)
             elif storage.key_exist(record.key):
                 storage.delete_key(record.key)
+                record.write({'size': 0})
 
     def raw_data_exist(self) -> bool:
         self.ensure_one()
@@ -47,3 +62,4 @@ class DataChunk(models.Model):
                 continue
             if storage.key_exist(record.key):
                 storage.delete_key(record.key)
+            record.write({'size': 0})

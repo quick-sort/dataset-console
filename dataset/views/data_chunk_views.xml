@@ -6,13 +6,19 @@
         <field name="arch" type="xml">
             <form string="Data Chunk">
                 <sheet>
+                    <widget name="web_ribbon" title="Missing" bg_color="text-bg-danger" invisible="state != 'missing'"/>
+                    <widget name="web_ribbon" title="Exists" bg_color="text-bg-warning" invisible="state != 'exists'"/>
+                    <widget name="web_ribbon" title="Checked" bg_color="text-bg-success" invisible="state != 'checked'"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_preview" type="object" string="Preview" icon="fa-search" class="oe_stat_button"/>
+                    </div>
                     <group>
                         <field name="key"/>
                         <field name="dataset_id"/>
-                        <field name="state"/>
                     </group>
                     <group>
                         <field name="size"/>
+                        <field name="display_size" readonly="1"/>
                         <field name="metadata" widget="json_editor"/>
                     </group>
                     <group>
@@ -34,13 +40,11 @@
             <list string="Data Chunks">
                 <field name="dataset_id"/>
                 <field name="key"/>
-                <field name="size"/>
                 <field name="state" widget="badge"
                        decoration-danger="state == 'missing'"
                        decoration-warning="state == 'exists'"
                        decoration-success="state == 'checked'"/>
-                <field name="raw_data" filename="raw_data_filename"/>
-                <field name="raw_data_filename" column_invisible="1"/>
+                <field name="display_size"/>
             </list>
         </field>
     </record>
@@ -71,5 +75,53 @@
         <field name="res_model">dataset.data_chunk</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_data_chunk_search"/>
+    </record>
+
+    <!-- PDF Preview -->
+    <record id="view_data_chunk_preview_pdf" model="ir.ui.view">
+        <field name="name">dataset.data_chunk.preview.pdf</field>
+        <field name="model">dataset.data_chunk</field>
+        <field name="arch" type="xml">
+            <form string="Preview" create="false" edit="false">
+                <sheet>
+                    <field name="raw_data" widget="pdf_viewer" filename="raw_data_filename"/>
+                </sheet>
+                <footer>
+                    <button string="Close" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Text Preview (JSON, JSONL) -->
+    <record id="view_data_chunk_preview_text" model="ir.ui.view">
+        <field name="name">dataset.data_chunk.preview.text</field>
+        <field name="model">dataset.data_chunk</field>
+        <field name="arch" type="xml">
+            <form string="Preview" create="false" edit="false">
+                <sheet>
+                    <field name="raw_data" filename="raw_data_filename" readonly="1"/>
+                </sheet>
+                <footer>
+                    <button string="Close" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Binary Preview (DOCX, XLSX) -->
+    <record id="view_data_chunk_preview_binary" model="ir.ui.view">
+        <field name="name">dataset.data_chunk.preview.binary</field>
+        <field name="model">dataset.data_chunk</field>
+        <field name="arch" type="xml">
+            <form string="Download" create="false" edit="false">
+                <sheet>
+                        <field name="raw_data" filename="raw_data_filename" readonly="1"/>
+                </sheet>
+                <footer>
+                    <button string="Close" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
     </record>
 </odoo>

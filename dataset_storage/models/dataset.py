@@ -1,20 +1,49 @@
 # -*- coding: utf-8 -*-
 
 import logging
+from typing import TYPE_CHECKING
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
-from odoo.tools import config
+
+if TYPE_CHECKING:
+    pass
 
 _logger = logging.getLogger(__name__)
+
+BATCH_SIZE = 1000
 
 
 class Dataset(models.Model):
     _inherit = 'dataset'
 
-    SCAN_BATCH_SIZE = 1000
+    storage_id = fields.Many2one(
+        'dataset.storage',
+        string='Storage',
+        ondelete='restrict',
+        default=lambda self: self._get_default_storage(),
+    )
 
-    storage_id = fields.Many2one('dataset.storage', string='Storage', ondelete='restrict')
+    @api.model
+    def _default_storage_id(self):
+        """Return the default file storage, creating one if needed."""
+        Storage = self.env['dataset.storage']
+        storage = Storage.search([('backend_type', '=', 'fsspec')], limit=1)
+        if not storage:
+            storage = Storage.create({
+                'name': 'file',
+                'backend_type': 'fsspec',
+                'config': {'protocol': 'file', 'root': '/var/lib/datasets'},
+            })
+        return storage.id
+
+    @api.model
+    def _get_default_storage(self):
+        """Return default storage by XML external ID, creating one if needed."""
+        try:
+            return self.env.ref('dataset_storage.default_storage').id
+        except Exception:
+            return self._default_storage_id()
     size = fields.Integer(
         string='Size in bytes',
         compute='_compute_size',
@@ -28,12 +57,8 @@ class Dataset(models.Model):
             record.size = sum(record.chunk_ids.mapped('size'))
 
     def action_scan_chunks(self):
-        """Schedule a background scan via queue_job. Returns immediately.
-
-        First-time scans against large buckets can list millions of keys and
-        run for hours; running the worker inline would hit Odoo's
-        ``--limit-time-cpu`` / ``--limit-time-real`` worker limits.
-        """
+        """List all keys, split into batches of 1000, dispatch child jobs
+        for creating new chunks and updating existing chunks."""
         self.ensure_one()
         if not self.storage_id:
             raise UserError(_("No storage configured for this dataset."))
@@ -52,80 +77,104 @@ class Dataset(models.Model):
             },
         }
 
-    def scan_chunks(self, batch_size: int | None = None, max_batches: int | None = None) -> int:
-        """Sync worker. Run inline only for small datasets; otherwise use
-        ``action_scan_chunks`` to dispatch via queue_job.
-
-        - One backend listing call returns ``(key, size)`` pairs (no per-key HEAD).
-        - Existing chunk keys come from a SQL query, not the ORM relationship,
-          so re-scans of large datasets don't materialize every record.
-        - Pre-existing chunks are LEFT UNTOUCHED — sizes are not refreshed.
-        - Inserts are batched; ``cr.commit`` runs between batches so a
-          long-running scan persists progress (and can survive worker restart
-          when re-launched). ``max_batches`` lets a cron checkpoint cap work
-          per call.
-        - Bad keys are logged and skipped, not raised — one rogue file does
-          not abort a multi-hour scan.
-        """
+    def scan_chunks(self) -> int:
+        """List all keys from storage, split into batches of 1000,
+        dispatch child jobs for create/update."""
         self.ensure_one()
         if not self.storage_id:
             raise ValueError("no storage configured")
-        if batch_size is None:
-            batch_size = self.SCAN_BATCH_SIZE
 
         prefix = self._scan_prefix()
-        sized = self.storage_id.list_keys_sized(prefix)
+        storage_keys = self.storage_id.list_keys_sized(prefix)
 
-        # Existing keys via SQL — avoids loading every chunk record into the ORM.
+        # Existing keys from DB
         self.env.cr.execute(
-            "SELECT key FROM dataset_data_chunk "
+            "SELECT key, size FROM dataset_data_chunk "
             "WHERE dataset_id = %s AND key IS NOT NULL",
             (self.id,),
         )
-        existing = {row[0] for row in self.env.cr.fetchall()}
+        existing = {row[0]: row[1] for row in self.env.cr.fetchall()}
 
-        new_pairs = [(k, s) for k, s in sized if k not in existing]
-        if not new_pairs:
-            return 0
+        # 分类
+        new_keys = []       # storage 有，数据库没有
+        missing_keys = []   # 数据库有，storage 没有
+        size_changed = []   # size 有变化
 
-        key_fields = self.key_fields or []
+        for key, size in storage_keys:
+            if key in existing:
+                if existing[key] != size:
+                    size_changed.append((key, size))
+                del existing[key]
+            else:
+                new_keys.append((key, size))
+
+        # 剩余的 key 只在数据库中存在，storage 已删除
+        missing_keys = list(existing.keys())
+
+        # 分发任务
+        for i in range(0, len(new_keys), BATCH_SIZE):
+            batch = new_keys[i:i + BATCH_SIZE]
+            self.with_delay(
+                description=_("Scan: create %d chunks") % len(batch),
+            )._scan_create_batch(batch)
+
+        for i in range(0, len(size_changed), BATCH_SIZE):
+            batch = size_changed[i:i + BATCH_SIZE]
+            self.with_delay(
+                description=_("Scan: update %d chunks") % len(batch),
+            )._scan_update_batch(batch)
+
+        _logger.info(
+            "Scan dispatched for dataset %s: %d new, %d size-changed, %d missing",
+            self.display_name, len(new_keys), len(size_changed), len(missing_keys),
+        )
+
+        # 标记 missing
+        if missing_keys:
+            self.env.cr.execute(
+                "UPDATE dataset_data_chunk SET state = 'missing' "
+                "WHERE dataset_id = %s AND key = ANY(%s)",
+                (self.id, missing_keys),
+            )
+
+        return len(new_keys) + len(size_changed) + len(missing_keys)
+
+    def _scan_create_batch(self, batch: list[tuple[str, int]]) -> int:
+        """Create a batch of new chunks."""
         Dataset = self.env['dataset']
         DataChunk = self.env['dataset.data_chunk']
+        key_fields = self.key_fields or []
 
-        total_created = 0
-        batch_count = 0
-        batch: list[dict] = []
-
-        for key, size in new_pairs:
+        to_create = []
+        for key, size in batch:
             try:
                 parsed = Dataset.parse_chunk_key(key, key_fields)
             except ValueError as e:
-                _logger.warning(
-                    "Skipping unparseable key %r in dataset %s: %s",
-                    key, self.display_name, e,
-                )
+                _logger.warning("Skipping unparseable key %r: %s", key, e)
                 continue
-            batch.append({
+            to_create.append({
                 'dataset_id': self.id,
                 'metadata': parsed.get('metadata'),
                 'state': 'exists',
                 'size': size,
+                'raw_data_filename': key.rsplit('/', 1)[-1],
             })
-            if len(batch) >= batch_size:
-                DataChunk.create(batch)
-                total_created += len(batch)
-                self._scan_commit()
-                batch = []
-                batch_count += 1
-                if max_batches is not None and batch_count >= max_batches:
-                    return total_created
 
-        if batch:
-            DataChunk.create(batch)
-            total_created += len(batch)
-            self._scan_commit()
+        if to_create:
+            DataChunk.create(to_create)
 
-        return total_created
+        return len(to_create)
+
+    def _scan_update_batch(self, batch: list[tuple[str, int]]) -> int:
+        """Update size for existing chunks that have changed."""
+        DataChunk = self.env['dataset.data_chunk']
+        updated = 0
+        for key, size in batch:
+            chunk = DataChunk.search([('key', '=', key), ('dataset_id', '=', self.id)], limit=1)
+            if chunk:
+                chunk.write({'size': size})
+                updated += 1
+        return updated
 
     def _scan_prefix(self) -> str:
         source_code = self.source_id.code
@@ -133,9 +182,3 @@ class Dataset(models.Model):
         prefix = f"{source_code}/{dataset_code}"
         prefix += "/" if self.key_fields else "."
         return prefix
-
-    def _scan_commit(self) -> None:
-        """Commit between scan batches so progress persists. Skipped under
-        the test runner so TransactionCase rollback still works."""
-        if not config['test_enable']:
-            self.env.cr.commit()

@@ -12,6 +12,10 @@
             </field>
             <field name="total_chunks" position="after">
                 <field name="values" widget="json"/>
+            <div class="oe_button_box" name="button_box">
+                <button name="action_refresh_values" type="object"
+                        string="Refresh" class="oe_stat_button" icon="fa-refresh"/>
+            </div>
             </field>
         </field>
     </record>

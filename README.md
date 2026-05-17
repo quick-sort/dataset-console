@@ -57,19 +57,14 @@ chunk = env['dataset.data_chunk'].create({
 ## Architecture
 
 ```mermaid
-flowchart TD
-    dataset[dataset addon<br/>metadata catalog] --> dataset_storage
-    component[component addon<br/>registry] --> dataset_storage
-    dataset_storage[dataset_storage addon<br/>storage backend] --- data_chunk[data_chunk<br/>raw_data]
-
-    data_chunk -- read/write --> fsspec[fsspec<br/>file·s3·gcs·azure]
-
-    dataset_storage -- storage_id --> dataset
-
-    linkStyle 3,4 stroke-width:0
+flowchart LR
+    dataset[▶ dataset<br/>metadata catalog] --> component[○ component<br/>bundled]
+    dataset_storage[● dataset_storage<br/>storage backend] --> dataset
+    dataset_storage --> component
+    component_event[○ component_event<br/>bundled] --> component
 ```
 
-The `dataset` addon is the metadata catalog. `dataset_storage` extends it with:
+`dataset` is the metadata catalog. `dataset_storage` extends it with:
 
 - `dataset.storage_id` on `dataset` — link to a storage backend.
 - `dataset.data_chunk.raw_data` compute/inverse — reads/writes via storage.

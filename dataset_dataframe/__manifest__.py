@@ -14,7 +14,7 @@ helpers backed by Polars. Supports CSV and Parquet chunk types.
     'author': 'Quick Sort',
     'website': '',
     'license': 'LGPL-3',
-    'depends': ['dataset', 'dataset_storage'],
+    'depends': ['dataset'],
     'external_dependencies': {
         'python': ['polars'],
     },

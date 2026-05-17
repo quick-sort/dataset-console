@@ -10,10 +10,9 @@
             </field>
             <xpath expr="//div[@name='button_box']/button" position="after">
                 <button name="action_scan_chunks" type="object"
+                        string="Scan"
                         class="oe_stat_button" icon="fa-refresh"
-                        help="Scan storage for new chunk keys. Runs in the background via queue_job; existing chunks are not refreshed.">
-                    <field name="total_chunks" widget="statinfo" string="Scan"/>
-                </button>
+                        help="Scan storage for new chunk keys. Runs in the background via queue_job; existing chunks are not refreshed."/>
             </xpath>
         </field>
     </record>

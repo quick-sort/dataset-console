@@ -9,13 +9,6 @@
             <field name="size" position="after">
                 <field name="record_count"/>
             </field>
-            <xpath expr="//sheet" position="inside">
-                <group>
-                    <button name="action_preview" type="object"
-                            string="Preview" icon="fa-table"
-                            class="btn-secondary"/>
-                </group>
-            </xpath>
         </field>
     </record>
 
@@ -24,32 +17,9 @@
         <field name="model">dataset.data_chunk</field>
         <field name="inherit_id" ref="dataset.view_data_chunk_list"/>
         <field name="arch" type="xml">
-            <field name="size" position="after">
+            <field name="display_size" position="after">
                 <field name="record_count"/>
             </field>
-            <xpath expr="//list" position="inside">
-                <button name="action_preview" type="object"
-                        string="Preview" icon="fa-table"/>
-            </xpath>
-        </field>
-    </record>
-
-    <record id="view_data_chunk_preview" model="ir.ui.view">
-        <field name="name">dataset.data_chunk.preview</field>
-        <field name="model">dataset.data_chunk</field>
-        <field name="arch" type="xml">
-            <form string="Preview" create="false" edit="false">
-                <sheet>
-                    <group>
-                        <field name="key" readonly="1"/>
-                        <field name="record_count" readonly="1"/>
-                    </group>
-                    <field name="html_preview" readonly="1"/>
-                </sheet>
-                <footer>
-                    <button string="Close" special="cancel" class="btn-secondary"/>
-                </footer>
-            </form>
         </field>
     </record>
 

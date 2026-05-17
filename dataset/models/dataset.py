@@ -19,11 +19,15 @@ class Dataset(models.Model):
         ('csv', 'CSV'),
         ('docx', 'Word'),
         ('xlsx', 'Excel'),
+        ('pptx', 'PowerPoint'),
         ('json', 'JSON'),
         ('jsonl', 'JSONL'),
         ('parquet', 'Parquet'),
+        ('txt', 'Text'),
+        ('md', 'Markdown'),
+        ('image', 'Image'),
     ], string='Chunk Type', default='csv', tracking=True)
-    key_fields = fields.Json(string='Key Fields', help='List of metadata keys used as chunk keys', tracking=True)
+    key_fields = fields.Json(string='Key Fields', default=[], help='List of metadata keys used as chunk keys', tracking=True)
     chunk_ids = fields.One2many('dataset.data_chunk', 'dataset_id', string='Chunks')
     total_chunks = fields.Integer(
         string='Total Chunks',
@@ -90,21 +94,6 @@ class Dataset(models.Model):
             'chunk_type': chunk_type,
             'metadata': meta,
         }
-
-    def scan_chunks(self) -> int:
-        self.ensure_one()
-        storage = self.storage_id
-        if not storage:
-            raise ValueError("no storage configured")
-        keys = storage.list_keys()
-        existing_keys = {chunk.key for chunk in self.chunk_ids if chunk.key}
-        new_keys = [k for k in keys if k not in existing_keys]
-        for key in new_keys:
-            self.env['dataset.data_chunk'].create({
-                'dataset_id': self.id,
-                'key': key,
-            })
-        return len(new_keys)
 
     def action_view_chunks(self):
         self.ensure_one()

@@ -9,10 +9,10 @@
           hf/imdb/train/0001.parquet  → /mnt/datasets/hf/imdb/train/0001.parquet
           hf/squad_v2/train.json      → /mnt/datasets/hf/squad_v2/train.json.gz
     -->
-    <record id="storage_local" model="dataset.storage">
+    <record id="default_storage" model="dataset.storage">
         <field name="name">Local</field>
         <field name="backend_type">fsspec</field>
-        <field name="config">{"protocol": "file", "root": "/mnt/datasets"}</field>
+        <field name="config">{"protocol": "file", "root": "/var/lib/odoo/filestore/datasets"}</field>
     </record>
 
     <!--

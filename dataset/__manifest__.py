@@ -33,6 +33,9 @@ companion ``dataset_storage`` addon and its backend-specific extensions.
     'license': 'LGPL-3',
     'icon': '/dataset/static/description/stock.svg',
     'depends': ['base', 'web_json_editor'],
+    'external_dependencies': {
+        'python': ['pyarrow'],
+    },
     'data': [
         'security/dataset_manager.xml',
         'security/ir.model.access.csv',
@@ -42,6 +45,7 @@ companion ``dataset_storage`` addon and its backend-specific extensions.
         'views/data_chunk_views.xml',
         'views/dataset_views.xml',
         'views/menu.xml',
+        'wizard/table_preview_wizard_views.xml',
     ],
     'demo': [
         'demo/dataset_demo.xml',
