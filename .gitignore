@@ -9,6 +9,9 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+component/
+component_event/
+queue_job/
 web_responsive/
 web_json_editor/
 develop-eggs/
