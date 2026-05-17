@@ -10,6 +10,7 @@ __pycache__/
 .Python
 build/
 web_responsive/
+web_json_editor/
 develop-eggs/
 dist/
 downloads/
