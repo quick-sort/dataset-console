@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import base64
+import logging
 
 from odoo import models, fields
+
+_logger = logging.getLogger(__name__)
 
 
 class DataChunk(models.Model):
@@ -17,6 +20,8 @@ class DataChunk(models.Model):
     size = fields.Integer('Size in bytes')
 
     def _compute_raw_data(self) -> None:
+        _logger.warning("[DEBUG] _compute_raw_data called for %d records, context=%s",
+                       len(self), self.env.context)
         for record in self:
             storage = record.dataset_id.storage_id
             if not storage or not record.key or not storage.key_exist(record.key):

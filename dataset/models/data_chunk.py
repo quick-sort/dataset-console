@@ -46,10 +46,10 @@ class DataChunk(models.Model):
         "Chunk key must be unique within dataset!",
     )
 
-    @api.depends('raw_data')
+    @api.depends('size')
     def _compute_state(self):
         for record in self:
-            record.state = 'exists' if record.raw_data else 'missing'
+            record.state = 'exists' if record.size else 'missing'
 
     @api.depends('size')
     def _compute_display_size(self):
@@ -83,23 +83,29 @@ class DataChunk(models.Model):
         return type_map.get(chunk_type or '', 'binary')
 
     def action_preview(self):
+        """Preview the chunk file - loads data and opens preview view."""
         self.ensure_one()
-        if not self.raw_data:
-            raise ValueError("No raw data to preview")
         preview_type = self._get_preview_type()
+        # For table types, load data and pass to table_preview_wizard
         if preview_type == 'table':
-            wizard = self.env['dataset.table_preview_wizard'].create({
-                'chunk_id': self.id,
-            })
-            return {
-                'type': 'ir.actions.act_window',
-                'name': self.display_name,
-                'res_model': 'dataset.table_preview_wizard',
-                'res_id': wizard.id,
-                'target': 'new',
-                'view_mode': 'form',
-                'context': {'default_chunk_id': self.id},
-            }
+            storage = self.dataset_id.storage_id if self.dataset_id else None
+            if storage and self.key:
+                data = storage.read_key(self.key)
+                if data:
+                    wizard = self.env['dataset.table_preview_wizard'].create({
+                        'chunk_id': self.id,
+                        'raw_data': base64.b64encode(data),
+                    })
+                    return {
+                        'type': 'ir.actions.act_window',
+                        'name': self.display_name,
+                        'res_model': 'dataset.table_preview_wizard',
+                        'res_id': wizard.id,
+                        'target': 'new',
+                        'view_mode': 'form',
+                    }
+            raise ValueError("Cannot load preview data")
+        # For non-table types, open form view (triggering compute is fine - user clicked preview)
         view_xml_id = f'dataset.view_data_chunk_preview_{preview_type}'
         return {
             'type': 'ir.actions.act_window',
@@ -108,5 +114,17 @@ class DataChunk(models.Model):
             'res_id': self.id,
             'view_mode': 'form',
             'view_id': self.env.ref(view_xml_id).id,
+            'target': 'new',
+        }
+
+    def action_open_file_wizard(self):
+        """Open wizard for file download."""
+        return {
+            'type': 'ir.actions.act_window',
+            'name': self.display_name,
+            'res_model': 'dataset.data_chunk',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'view_id': self.env.ref('dataset.view_data_chunk_download').id,
             'target': 'new',
         }

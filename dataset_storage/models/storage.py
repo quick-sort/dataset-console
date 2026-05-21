@@ -88,7 +88,14 @@ class Storage(models.Model):
         result: list[tuple[str, int]] = []
         for k, size in pairs:
             if root:
-                k = k[len(root) + 1:] if k.startswith(root + '/') else k
+                # Strip root prefix (handle both s3:// and non-protocol formats)
+                if k.startswith(root + '/'):
+                    k = k[len(root) + 1:]
+                else:
+                    # S3 may return keys without protocol, e.g. "bucket/path/file.txt"
+                    root_without_protocol = root.split('://', 1)[-1] if '://' in root else root
+                    if k.startswith(root_without_protocol + '/'):
+                        k = k[len(root_without_protocol) + 1:]
             if k.endswith('.gz'):
                 k = k[:-3]
             result.append((k, size))
@@ -96,3 +103,43 @@ class Storage(models.Model):
 
     def get_size(self, key: str) -> int:
         return self._adapter().get_size(self._resolve_key(key))
+
+    def action_test(self) -> dict:
+        """Test storage connectivity by writing and reading a test file."""
+        self.ensure_one()
+        config: dict = self.config or {}
+        protocol: str = config.get('protocol', 'file')
+        test_key = f"_test_{self.id}_{self.env.uid}"
+        test_data = b"Hello from dataset storage test!"
+        result = {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Storage Test',
+                'message': '',
+                'sticky': False,
+            },
+        }
+        try:
+            adapter = self._adapter()
+            fs = adapter._fs()
+            root = config.get('root', '')
+            full_key = f"{root.rstrip('/')}/{test_key}" if root else test_key
+            parent = full_key.rsplit('/', 1)[0]
+            if parent and parent != full_key:
+                fs.makedirs(parent, exist_ok=True)
+            with fs.open(full_key, 'wb') as f:
+                f.write(test_data)
+            with fs.open(full_key, 'rb') as f:
+                read_data = f.read()
+            fs.rm(full_key)
+            if read_data == test_data:
+                result['params']['message'] = 'Test passed: Write and read successful!'
+                result['params']['type'] = 'success'
+            else:
+                result['params']['message'] = 'Test failed: Data mismatch!'
+                result['params']['type'] = 'warning'
+        except Exception as e:
+            result['params']['message'] = f'Test failed: {e}'
+            result['params']['type'] = 'danger'
+        return result

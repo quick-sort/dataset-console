@@ -15,7 +15,7 @@ Provides storage backend for datasets.
     'license': 'LGPL-3',
     'depends': ['base', 'dataset', 'component', 'queue_job'],
     'external_dependencies': {
-        'python': ['fsspec'],
+        'python': ['fsspec', 's3fs'],
     },
     'data': [
         'security/ir.model.access.csv',

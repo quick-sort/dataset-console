@@ -5,11 +5,11 @@
         <field name="model">dataset.data_chunk</field>
         <field name="inherit_id" ref="dataset.view_data_chunk_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='raw_data']/.." position="after">
+            <xpath expr="//group[last()]" position="after">
                 <group>
                     <button name="cleanup_raw_data" type="object"
-                            string="Cleanup Raw Data" icon="fa-trash"
-                            confirm="Delete the raw data of this chunk from storage?"/>
+                            string="Cleanup from Storage" icon="fa-trash"
+                            confirm="Delete the file of this chunk from storage?"/>
                 </group>
             </xpath>
         </field>

@@ -29,6 +29,7 @@ class TablePreviewWizard(models.TransientModel):
 
     chunk_id = fields.Many2one('dataset.data_chunk', string='Chunk', required=True)
     chunk_name = fields.Char(related='chunk_id.display_name', readonly=True, store=False)
+    raw_data = fields.Binary(string='Raw Data', readonly=True)  # Set directly by wizard
     headers = fields.Text(string='Headers', readonly=True)
     total_rows = fields.Integer(string='Total Rows', readonly=True)
     total_pages = fields.Integer(string='Total Pages', readonly=True)
@@ -51,9 +52,13 @@ class TablePreviewWizard(models.TransientModel):
     def _load_table_data(self, chunk=None):
         if chunk is None:
             chunk = self.chunk_id
-        if not chunk or not chunk.raw_data:
+        # Check wizard's raw_data first, then chunk.raw_data
+        data_bytes = self.raw_data if self.raw_data else (chunk.raw_data if chunk else None)
+        if not data_bytes:
             return [], []
-        data = base64.b64decode(chunk.raw_data)
+        if isinstance(data_bytes, str):
+            data_bytes = data_bytes.encode('utf-8')
+        data = base64.b64decode(data_bytes)
         chunk_type = chunk.dataset_id.chunk_type if chunk.dataset_id else None
         if chunk_type == 'csv':
             lines = data.decode('utf-8', errors='replace').splitlines()

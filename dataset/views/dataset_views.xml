@@ -65,10 +65,10 @@
                             <field name="code" class="text-muted d-block"/>
                         </div>
                         <div>
-                            <i class="fa fa-database me-1"/><field name="source_id"/>
+                            <i class="fa fa-database me-1" title="Source"/><field name="source_id"/>
                         </div>
                         <div t-if="record.package_id.raw_value">
-                            <i class="fa fa-folder me-1"/><field name="package_id"/>
+                            <i class="fa fa-folder me-1" title="Package"/><field name="package_id"/>
                         </div>
                         <div t-if="record.manifest_id.raw_value" class="mt-2">
                             <div class="d-flex justify-content-between small text-muted">

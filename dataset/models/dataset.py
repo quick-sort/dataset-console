@@ -8,7 +8,7 @@ class Dataset(models.Model):
     _description = 'Dataset'
     _order = 'id desc'
 
-    name = fields.Char(string='Label', required=True)
+    name = fields.Char(string='Name', required=True)
     code = fields.Char(string='Code', required=True)
     source_id = fields.Many2one('dataset.source', string='Source', required=True, tracking=True)
     package_id = fields.Many2one('dataset.package', string='Package', index=True)
