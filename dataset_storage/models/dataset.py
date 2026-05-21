@@ -44,17 +44,19 @@ class Dataset(models.Model):
             return self.env.ref('dataset_storage.default_storage').id
         except Exception:
             return self._default_storage_id()
-    size = fields.Integer(
-        string='Size in bytes',
+    size = fields.Float(
+        string='Size (GB)',
         compute='_compute_size',
         store=True,
         readonly=True,
+        digits=(16, 3),
     )
 
     @api.depends('chunk_ids.size')
     def _compute_size(self):
         for record in self:
-            record.size = sum(record.chunk_ids.mapped('size'))
+            total_bytes = sum(float(s) for s in record.chunk_ids.mapped('size'))
+            record.size = total_bytes / (1024 * 1024 * 1024) if total_bytes else 0.0
 
     def action_scan_chunks(self):
         """List all keys, split into batches of 1000, dispatch child jobs
