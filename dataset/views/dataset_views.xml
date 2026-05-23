@@ -22,6 +22,7 @@
                         <group>
                             <field name="name"/>
                             <field name="manifest_id"/>
+                            <field name="filter_domain" placeholder="[('split', '=', 'train')]"/>
                             <field name="fill_rate" widget="percentage"/>
                         </group>
                     </group>
@@ -46,7 +47,9 @@
                 <field name="manifest_id" optional="hide"/>
                 <field name="chunk_type"/>
                 <field name="total_chunks"/>
+                <field name="filtered_total_chunks" optional="hide"/>
                 <field name="fill_rate" widget="percentage"/>
+                <field name="filter_domain" optional="hide"/>
             </list>
         </field>
     </record>

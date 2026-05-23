@@ -21,7 +21,7 @@ class Manifest(models.Model):
             values = []
             if record.dataset_id:
                 df = record.dataset_id.to_dataframe()
-                if df:
+                if df is not None and not df.is_empty():
                     values = df.to_dicts()
                 
             record.values = values

@@ -1,6 +1,94 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api
+from odoo.tools.safe_eval import safe_eval
+
+
+OPERATORS = {
+    '=': lambda a, b: a == b,
+    '==': lambda a, b: a == b,
+    '!=': lambda a, b: a != b,
+    '>': lambda a, b: a > b,
+    '<': lambda a, b: a < b,
+    '>=': lambda a, b: a >= b,
+    '<=': lambda a, b: a <= b,
+    'in': lambda a, b: a in b if b else False,
+    'not in': lambda a, b: a not in b if b else False,
+    'like': lambda a, b: b in str(a) if a and b else False,
+}
+
+
+def _match_domain(row: dict, domain) -> bool:
+    """递归解析 Odoo domain 表达式并匹配 row"""
+    if not domain:
+        return True
+
+    if isinstance(domain, str):
+        domain = safe_eval(domain)
+
+    if not domain:
+        return True
+
+    op = domain[0] if domain else '&'
+    if op not in ('&', '|'):
+        return all(_match_single_condition(row, item) for item in domain)
+
+    if op == '&':
+        for i in range(1, len(domain)):
+            item = domain[i]
+            if item in ('&', '|'):
+                continue
+            if not _match_single_condition(row, item):
+                return False
+        return True
+    else:  # OR
+        for i in range(1, len(domain)):
+            item = domain[i]
+            if item in ('&', '|'):
+                continue
+            if _match_single_condition(row, item):
+                return True
+        return False
+
+
+def _match_single_condition(row: dict, condition) -> bool:
+    """匹配单个条件 [field, op, value]"""
+    if not condition or len(condition) < 3:
+        return True
+
+    field, operator, value = condition[0], condition[1], condition[2]
+    row_value = row.get(field)
+
+    # 处理 '!' 前缀的操作符
+    if isinstance(operator, str) and operator.startswith('!'):
+        operator = operator[1:]
+        negated = True
+    else:
+        negated = False
+
+    # 处理 'not' 前缀
+    if isinstance(operator, str) and operator.startswith('not '):
+        operator = operator[4:]
+        negated = True
+
+    # 列表/元组格式的 domain (支持 and/or 嵌套)
+    if isinstance(value, (list, tuple)) and len(value) >= 2:
+        # 递归处理嵌套 domain
+        if value[0] in ('&', '|'):
+            result = _match_domain(row, value)
+        else:
+            # 多个独立条件，用 AND 连接
+            result = all(_match_single_condition(row, c) for c in value)
+        return not result if negated else result
+
+    # 比较
+    op_func = OPERATORS.get(operator)
+    if op_func:
+        result = op_func(row_value, value)
+    else:
+        result = row_value == value
+
+    return not result if negated else result
 
 
 class Dataset(models.Model):
@@ -29,17 +117,27 @@ class Dataset(models.Model):
     ], string='Chunk Type', default='csv', tracking=True)
     key_fields = fields.Json(string='Key Fields', default=[], help='List of metadata keys used as chunk keys', tracking=True)
     chunk_ids = fields.One2many('dataset.data_chunk', 'dataset_id', string='Chunks')
+    filter_domain = fields.Char(
+        string='Filter Domain',
+        help="Odoo domain expression to filter manifest values, e.g. [('date', '=', '2024')]"
+    )
     total_chunks = fields.Integer(
         string='Total Chunks',
         compute='_compute_total_chunks',
         store=True,
+    )
+    filtered_total_chunks = fields.Integer(
+        string='Expected Chunks',
+        compute='_compute_filtered_total_chunks',
+        store=True,
+        help="Number of values after applying filter_domain",
     )
     fill_rate = fields.Float(
         string='Fill Rate',
         compute='_compute_fill_rate',
         store=True,
         digits=(5, 4),
-        help="Actual chunk count divided by the manifest's expected chunk count. "
+        help="Actual chunk count divided by the filtered expected chunk count. "
              "0 if no manifest is set or its expected count is 0.",
     )
 
@@ -107,8 +205,21 @@ class Dataset(models.Model):
         for record in self:
             record.total_chunks = len(record.chunk_ids)
 
-    @api.depends('total_chunks', 'manifest_id.total_chunks')
+    @api.depends('manifest_id', 'manifest_id.values', 'filter_domain')
+    def _compute_filtered_total_chunks(self):
+        for record in self:
+            total = 0
+            if record.manifest_id and record.manifest_id.values:
+                values = record.manifest_id.values
+                if record.filter_domain:
+                    domain = safe_eval(record.filter_domain)
+                    total = len([v for v in values if _match_domain(v, domain)])
+                else:
+                    total = len(values)
+            record.filtered_total_chunks = total
+
+    @api.depends('total_chunks', 'filtered_total_chunks')
     def _compute_fill_rate(self):
         for record in self:
-            expected = record.manifest_id.total_chunks
+            expected = record.filtered_total_chunks
             record.fill_rate = (record.total_chunks / expected) if expected else 0.0
