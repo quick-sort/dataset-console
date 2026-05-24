@@ -89,6 +89,9 @@ class Dataset(models.Model):
         prefix = self._scan_prefix()
         storage_keys = self.storage_id.list_keys_sized(prefix)
 
+        # 按 chunk_type 过滤
+        chunk_type = self.chunk_type
+
         # Existing keys from DB
         self.env.cr.execute(
             "SELECT key, size FROM dataset_data_chunk "
@@ -103,6 +106,8 @@ class Dataset(models.Model):
         size_changed = []   # size 有变化
 
         for key, size in storage_keys:
+            if not key.endswith(f'.{chunk_type}'):
+                continue
             if key in existing:
                 if existing[key] != size:
                     size_changed.append((key, size))

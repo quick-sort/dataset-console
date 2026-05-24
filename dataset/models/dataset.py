@@ -98,7 +98,7 @@ class Dataset(models.Model):
 
     name = fields.Char(string='Name', required=True)
     code = fields.Char(string='Code', required=True)
-    source_id = fields.Many2one('dataset.source', string='Source', required=True, tracking=True)
+    source_id = fields.Many2one('dataset.source', string='Source', required=True)
     package_id = fields.Many2one('dataset.package', string='Package', index=True)
     manifest_id = fields.Many2one('dataset.manifest', string='Manifest', ondelete='set null')
     description = fields.Text(string='Description')
@@ -114,8 +114,8 @@ class Dataset(models.Model):
         ('txt', 'Text'),
         ('md', 'Markdown'),
         ('image', 'Image'),
-    ], string='Chunk Type', default='csv', tracking=True)
-    key_fields = fields.Json(string='Key Fields', default=[], help='List of metadata keys used as chunk keys', tracking=True)
+    ], string='Chunk Type', default='csv')
+    key_fields = fields.Json(string='Key Fields', default=[], help='List of metadata keys used as chunk keys')
     chunk_ids = fields.One2many('dataset.data_chunk', 'dataset_id', string='Chunks')
     filter_domain = fields.Char(
         string='Filter Domain',

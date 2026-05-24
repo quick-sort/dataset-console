@@ -32,14 +32,14 @@ class DataChunk(models.Model):
     size = fields.Integer(string='Size in bytes')
     display_size = fields.Char(compute='_compute_display_size', string='Size')
 
-    metadata = fields.Json(string='Metadata', tracking=True)
+    metadata = fields.Json(string='Metadata')
     raw_data = fields.Binary(string='Raw Data', attachment=True)
     raw_data_filename = fields.Char(string='Raw Data Filename')
     state = fields.Selection([
         ('missing', 'Missing'),
         ('exists', 'Exists'),
         ('checked', 'Checked'),
-    ], string='State', default='missing', tracking=True, compute='_compute_state', store=True)
+    ], string='State', default='missing', compute='_compute_state', store=True)
 
     _key_dataset_unique = models.Constraint(
         'unique(key, dataset_id)',
