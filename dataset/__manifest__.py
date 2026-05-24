@@ -44,6 +44,7 @@ companion ``dataset_storage`` addon and its backend-specific extensions.
         'views/manifest_views.xml',
         'views/data_chunk_views.xml',
         'views/dataset_views.xml',
+        'views/tag_views.xml',
         'views/menu.xml',
         'wizard/table_preview_wizard_views.xml',
     ],

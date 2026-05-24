@@ -140,6 +140,13 @@ class Dataset(models.Model):
         help="Actual chunk count divided by the filtered expected chunk count. "
              "0 if no manifest is set or its expected count is 0.",
     )
+    tag_ids = fields.Many2many(
+        'dataset.tag',
+        'dataset_tag_rel',
+        'dataset_id',
+        'tag_id',
+        string='Tags',
+    )
 
     _code_source_unique = models.Constraint(
         'unique(code, source_id)',

@@ -22,6 +22,7 @@
                         <group>
                             <field name="name"/>
                             <field name="manifest_id"/>
+                            <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
                             <field name="filter_domain" placeholder="[('split', '=', 'train')]"/>
                             <field name="fill_rate" widget="percentage"/>
                         </group>
@@ -42,6 +43,7 @@
             <list string="Datasets">
                 <field name="code"/>
                 <field name="name"/>
+                <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="hide"/>
                 <field name="source_id"/>
                 <field name="package_id"/>
                 <field name="manifest_id" optional="hide"/>
@@ -83,6 +85,7 @@
                         </div>
                         <footer class="pt-2">
                             <field name="chunk_type" widget="badge"/>
+                            <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
                             <span class="ms-auto text-muted">
                                 <field name="total_chunks"/> chunks
                             </span>
@@ -100,6 +103,7 @@
             <search string="Datasets">
                 <field name="name"/>
                 <field name="code"/>
+                <field name="tag_ids"/>
                 <field name="source_id"/>
                 <field name="package_id"/>
                 <field name="manifest_id"/>
@@ -108,6 +112,7 @@
                     <filter string="Package" name="group_package" domain="[]" context="{'group_by': 'package_id'}"/>
                     <filter string="Manifest" name="group_manifest" domain="[]" context="{'group_by': 'manifest_id'}"/>
                     <filter string="Data Type" name="group_data_type" domain="[]" context="{'group_by': 'chunk_type'}"/>
+                    <filter string="Tag" name="group_tag" domain="[]" context="{'group_by': 'tag_ids'}"/>
                 </group>
                 <searchpanel>
                     <field name="source_id" string="Sources" select="multi" enable_counters="1" icon="fa-database"/>
