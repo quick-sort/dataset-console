@@ -43,11 +43,11 @@
             <list string="Datasets">
                 <field name="code"/>
                 <field name="name"/>
-                <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" optional="hide"/>
                 <field name="source_id"/>
                 <field name="package_id"/>
                 <field name="manifest_id" optional="hide"/>
                 <field name="chunk_type"/>
+                <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
                 <field name="total_chunks"/>
                 <field name="filtered_total_chunks" optional="hide"/>
                 <field name="fill_rate" widget="percentage"/>
